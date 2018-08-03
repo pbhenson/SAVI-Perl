@@ -40,50 +40,30 @@ foreach (@ARGV) {
 
 sub set_options {
 
-    my %options = (FullSweep => 1,
-		   DynamicDecompression => 1,
-		   FullMacroSweep => 1,
-		   OLE2Handling => 1,
-		   IgnoreTemplateBit => 1,
-		   VBA3Handling => 1,
-		   VBA5Handling => 1,
-		   OF95DecryptHandling => 0,
-		   HelpHandling => 1,
-		   DecompressVBA5 => 1,
-		   Emulation => 1,
-		   PEHandling => 1,
-		   ExcelFormulaHandling => 1,
-		   PowerPointMacroHandling => 1,
-		   PowerPointEmbeddedHandling => 1,
-		   ProjectHandling => 1,
-		   ZipDecompression => 1,
-		   ArjDecompression => 1,
-		   RarDecompression => 1,
-		   UueDecompression => 1,
-		   GZipDecompression => 1,
-		   TarDecompression => 1,
-		   CmzDecompression => 1,
-		   HqxDecompression => 1,
-		   MbinDecompression => 1,
-		   LoopBackEnabled => 0,
-		   Lha => 1,
-		   SfxArchives => 1,
-		   MSCabinet => 1,
-		   TnefAttachmentHandling => 1,
-		   MSCompress => 1,
-		   OF95DecryptHandling => 1,
-		   DeleteAllMacros => 0,
-		   Vbe => 0,
-		   ExecFileDisinfection => 0,
-		   VisioFileHandling => 1
-		   );
+    my @options = qw(
+        FullSweep DynamicDecompression FullMacroSweep OLE2Handling
+        IgnoreTemplateBit VBA3Handling VBA5Handling OF95DecryptHandling
+        HelpHandling DecompressVBA5 Emulation PEHandling ExcelFormulaHandling
+        PowerPointMacroHandling PowerPointEmbeddedHandling ProjectHandling
+        ZipDecompression ArjDecompression RarDecompression UueDecompression
+        GZipDecompression TarDecompression CmzDecompression HqxDecompression
+        MbinDecompression !LoopBackEnabled
+        Lha SfxArchives MSCabinet TnefAttachmentHandling MSCompress
+        !DeleteAllMacros Vbe !ExecFileDisinfection VisioFileHandling
+        Mime ActiveMimeHandling !DelVBA5Project
+        ScrapObjectHandling SrpStreamHandling Office2001Handling
+        Upx Mac SafeMacDfHandling PalmPilotHandling HqxDecompression
+        Pdf Rtf Html Elf WordB OutlookExpress
+      );
 
 
     my $error = $savi->set('MaxRecursionDepth', 16, 1);
     defined($error) and print "Error setting MaxRecursionDepth: $error\n";
 
-    foreach (keys %options) {
-	$error = $savi->set($_, $options{$_});
+    foreach (@options) {
+        my $value = ($_ =~ s/^!//) ? 0 : 1;
+
+        $error = $savi->set($_, $value);
 	defined($error) and print "Error setting $_: $error\n";
     }
 }

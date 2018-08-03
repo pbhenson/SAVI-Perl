@@ -36,6 +36,10 @@ installation.
 Changes
 -------
 
+0.15 - Updated sample scan.pl script to to use the same syntax as
+       amavisd-new for specifying options.
+
+
 0.10 - Calling $results->viruses() if the scanned file was not infected
        would result in a segmentation violation. While from a pedantic
        point of view you just really shouldn't do that ;), an empty

@@ -1,9 +1,9 @@
 #
-# SAVI-Perl version 0.10
+# SAVI-Perl version 0.15
 #
 # Paul Henson <henson@acm.org>
 #
-# Copyright (c) 2002 Paul Henson -- see COPYRIGHT file for details
+# Copyright (c) 2002,2003 Paul Henson -- see COPYRIGHT file for details
 #
 
 package SAVI;
@@ -20,7 +20,7 @@ require AutoLoader;
 
 @EXPORT = qw();
 
-$VERSION = '0.10';
+$VERSION = '0.15';
 
 sub AUTOLOAD {
     my $constname;
