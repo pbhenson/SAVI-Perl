@@ -3,7 +3,7 @@
  *
  * This file is a part of the Sophos Anti-Virus Interface (SAVI)(tm).
  *
- * Copyright (C) 1997,2000 Sophos Plc.
+ * Copyright (C) 2002 Sophos Plc, Oxford, England.
  * All rights reserved.
  *
  * This source code is only intended as a supplement to the

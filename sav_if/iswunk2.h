@@ -1,4 +1,3 @@
-// iswunk2.h
 /*
  * iswunk2.h (26-NOV-1999)
  *
@@ -18,7 +17,7 @@
 
 #include "savitype.h"
 
-// Check that we aren't trying to mix SAVI1 and SAVI2 interfaces:
+/* Check that we aren't trying to mix SAVI1 and SAVI2 interfaces: */
 #ifdef _SOPHOS_SAVI1
 #  error Attempting to mix SAVI1 and SAVI2 include files. Include only isavi2.h for SAVI2.
 #endif
@@ -28,8 +27,8 @@ class ISweepUnknown2
 {
 public:
    virtual HRESULT SOPHOS_STDCALL QueryInterface(REFIID IID, void** ppObject ) = 0;
-   virtual ULONG SOPHOS_STDCALL AddRef() = 0;
-   virtual ULONG SOPHOS_STDCALL Release() = 0;
+   virtual SOPHOS_ULONG SOPHOS_STDCALL AddRef() = 0;
+   virtual SOPHOS_ULONG SOPHOS_STDCALL Release() = 0;
 };
 
-#endif   //__ISWUNK2_H__
+#endif   /*__ISWUNK2_H__ */

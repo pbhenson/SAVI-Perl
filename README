@@ -36,7 +36,26 @@ installation.
 Changes
 -------
 
-0.15 - Updated sample scan.pl script to to use the same syntax as
+0.20 - Updated to version 4 of the SAVI API.
+
+     - Added new method $savi->load_data() to load virus data.
+       This can be used to dynamically refresh virus data when
+       updates are added.
+
+     - Added new method $savi->options() returning all valid
+       options for the virus engine in use.
+
+     - The $savi->set() method no longer requires the type of the
+       parameter being set to be passed as an argument.
+
+     - Added new method $savi->get() to return the current value of a
+       parameter.
+
+     - Added new method $savi->scan_fh() to perform a scan on an open
+       filehandle.
+
+
+0.15 - Updated sample scan.pl script to use the same syntax as
        amavisd-new for specifying options.
 
 

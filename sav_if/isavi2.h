@@ -3,33 +3,28 @@
  *
  * This file is a part of the Sophos Anti-Virus Interface (SAVI)(tm).
  *
- * Copyright (C) 1997,2000 Sophos Plc, Oxford, England.
+ * Copyright (C) 2002 Sophos Plc, Oxford, England.
  * All rights reserved.
  *
  * This source code is only intended as a supplement to the
  * SAVI(tm) Reference and related documentation for the library.
  *
- * Sophos ISavi2 declaration
+ * Sophos ISavi2 declarations.
  */
 
 #ifndef __ISAVI2_H__
 #define __ISAVI2_H__
 
-/* Check that we aren't trying to mix SAVI1 and SAVI2 interfaces: */
-#ifdef _SOPHOS_SAVI1
-#  error Attempting to mix SAVI1 and SAVI2 include files. Include only isavi2.h for SAVI2.
-#endif
-#define _SOPHOS_SAVI2
-
 #include "savitype.h"   /* SAVI types */
 #include "swerror2.h"   /* Savi2 error codes */
 #include "iswfact2.h"   /* The class factory */
+#include "swiid.h"      /* Interface identifiers */
 
 #ifdef __SOPHOS_WIN32__
-#  include <unknwn.h>         /* IUnknown interface */
+#  include <unknwn.h>   /* IUnknown interface */
 #  define SAVI_IUNKNOWN IUnknown
 #else    /* __SOPHOS_WIN32__ */
-#  include "iswunk2.h"        /* ISweepUnknown interface */
+#  include "iswunk2.h"  /* ISweepUnknown interface */
 #  define SAVI_IUNKNOWN ISweepUnknown2
 #endif   /* __SOPHOS_WIN32__ */
 
@@ -44,12 +39,12 @@ class ISweepNotify;
 
 template <class T> 
 class IEnum : public SAVI_IUNKNOWN
-/*
-   This class provides access to a list of objects of type T.
-*/
+/* This class provides access to a list of objects of type T. */
 {
 public:
-   virtual HRESULT SOPHOS_STDCALL Next(ULONG cElement, T pElement[], ULONG *pcFetched) = 0;
+   virtual HRESULT SOPHOS_STDCALL Next( SOPHOS_ULONG cElement, 
+                                        T pElement[], 
+                                        SOPHOS_ULONG *pcFetched ) = 0;
       /* Description:
             Copy the next cElements in pElement, which the caller must allocate.
 
@@ -61,30 +56,33 @@ public:
                            want this value.
          Return value:
             Success codes:
-            S_OK           The requested number of elements was copied into pElement.
-            S_FALSE        Less than requested number of elements was copied into pElement.
+            SOPHOS_S_OK    The requested number of elements were copied into pElement.
+            SOPHOS_S_FALSE Less than the requested number of elements were copied into pElement.
 
             Failure codes:
-            E_INVALIDARG   An invalid pointer parameter was supplied.
-            E_UNEXPECTED   An unexpected error.
+            SOPHOS_E_INVALIDARG   
+                           An invalid pointer parameter was supplied.
+            SOPHOS_E_UNEXPECTED   
+                           An unexpected error.
             Win32 platforms may also return other HRESULT values.
       
       */
 
-   virtual HRESULT SOPHOS_STDCALL Skip(ULONG cElement) = 0;
+   virtual HRESULT SOPHOS_STDCALL Skip( SOPHOS_ULONG cElement ) = 0;
       /* Description:
-            Skip the next cElements .
+            Skip the next cElements.
 
          Parameters:
             cElement       The number of elements to skip.
 
          Return value:
             Success codes:
-            S_OK           The requested number of elements was skipped.
-            S_FALSE        Less than requested number of elements was skipped.
+            SOPHOS_S_OK    The requested number of elements were skipped.
+            SOPHOS_S_FALSE Less than the requested number of elements were skipped.
 
             Failure codes:
-            E_UNEXPECTED   An unexpected error.
+            SOPHOS_E_UNEXPECTED   
+                           An unexpected error.
             Win32 platforms may also return other HRESULT values.
       
       */
@@ -98,30 +96,34 @@ public:
 
          Return value:
             Success codes:
-            S_OK           The requested number of elements was skipped.
+            SOPHOS_S_OK    The enumerator was reset successfully.
 
             Failure codes:
-            E_UNEXPECTED   An unexpected error.
+            SOPHOS_E_UNEXPECTED   
+                           An unexpected error.
             Win32 platforms may also return other HRESULT values.
       
       */
 
-   virtual HRESULT SOPHOS_STDCALL Clone(IEnum<T> **ppEnum) = 0;   
+   virtual HRESULT SOPHOS_STDCALL Clone( IEnum<T> **ppEnum ) = 0;   
       /* Description:
             Take a copy of this enumerator in its current state.
 
          Parameters:
-            ppEnum         A pointer which will be pointed to the newly
-                           cloned enumerator
+            ppEnum         A pointer which will point to the newly
+                           cloned enumerator.
 
          Return value:
             Success codes:
-            S_OK           The requested number of elements was skipped.
+            SOPHOS_S_OK    The enumerator was cloned successfully.
 
             Failure codes:
-            E_INVALIDARG   An invalid pointer parameter was supplied.
-            E_OUTOFMEMORY  Insufficient memory available to create the clone.
-            E_UNEXPECTED   An unexpected error.
+            SOPHOS_E_INVALIDARG   
+                           An invalid pointer parameter was supplied.
+            SOPHOS_E_OUTOFMEMORY  
+                           Insufficient memory available to create the clone.
+            SOPHOS_E_UNEXPECTED   
+                           An unexpected error.
             Win32 platforms may also return other HRESULT values.
       
       */
@@ -137,49 +139,51 @@ class ISavi2 : public SAVI_IUNKNOWN
 {
 public:
    virtual HRESULT SOPHOS_STDCALL Initialise() = 0;
-   virtual HRESULT SOPHOS_STDCALL InitialiseWithMoniker(LPCOLESTR pApplicationMoniker) = 0;
+   virtual HRESULT SOPHOS_STDCALL InitialiseWithMoniker( LPCOLESTR pApplicationMoniker ) = 0;
       /* Description:
             Initialise the sweep engine ready for use. Call this before using
-            any other parts of the ISavi2 interface. The client must eventually
+            any other parts of the SAVI interface. The client must eventually
             call Terminate() to finish with the interface.
 
          Parameters:
-            pApplicationMoniker  Some text to identify this instance of the
-                                 Savi2 interface. The text appears on the sweep
-                                 GUI and is used to identify configuration
-                                 settings as specific to this instance of
-                                 Savi2.
+            pApplicationMoniker  Some text to identify this instance of the SAVI 
+                                 interface. The text appears on the sweep GUI and 
+                                 is used to identify configuration settings as 
+                                 specific to this instance of SAVI.
             
          Return value:
             Success codes:
-            S_OK           The interface was successfully initialised.
-            SOPHOS_SAVI2_ERROR_OLD_VIRUS_DATA
+            SOPHOS_S_OK    The interface was successfully initialised.
+            SOPHOS_SAVI_ERROR_OLD_VIRUS_DATA
                            The interface was successfully initialised but the
                            internal virus data is beyond its useful life.
-                           Sophos recomends that the virus engine be upgraded
+                           Sophos recommends that the virus engine be upgraded
                            to a newer version as soon as possible.
                            
             Failure codes:
-            SOPHOS_SAVI2_ERROR_ALREADY_INIT
+            SOPHOS_SAVI_ERROR_ALREADY_INIT
                            The interface was already initialised.
-            SOPHOS_SAVI2_ERROR_SAV_NOT_INSTALLED
+            SOPHOS_SAVI_ERROR_SAV_NOT_INSTALLED
                            Sophos anti-virus software is not installed on this
                            computer.
-            SOPHOS_SAVI2_ERROR_INITIALISING                           
+            SOPHOS_SAVI_ERROR_INITIALISING                           
                            A non-specific initialisation error.
-            SOPHOS_SAVI2_ERROR_INIT_CONFIGURATION                             
+            SOPHOS_SAVI_ERROR_INIT_CONFIGURATION                             
                            An internal error occured initialising the engine
                            configuration.
-            SOPHOS_SAVI2_ERROR_MISSING_MAIN_VIRUS_DATA
+            SOPHOS_SAVI_ERROR_MISSING_MAIN_VIRUS_DATA
                            The main body of virus data is missing.
-            SOPHOS_SAVI2_ERROR_CORRUPT
+            SOPHOS_SAVI_ERROR_CORRUPT
                            The virus data was corrupt.
-            E_UNEXPECTED   An unexpected error.
+            SOPHOS_E_UNEXPECTED   
+                           An unexpected error.
             Win32 platforms may also return other HRESULT values.
       
       */
 
-   virtual HRESULT SOPHOS_STDCALL RegisterNotification(REFIID NotifyIID, void *pCallbackInterface, void *Token) = 0;
+   virtual HRESULT SOPHOS_STDCALL RegisterNotification( REFIID NotifyIID, 
+                                                        void *pCallbackInterface, 
+                                                        void *Token ) = 0;
       /* Description:
             Register a notification callback to be invoked during virus scans.
             The caller must create an object of the correct type and supply a pointer to it.
@@ -188,8 +192,7 @@ public:
 
          Parameters:
             NotifyIID      Identifies the type of the configuration data to be returned.
-                           At present only SOPHOS_IID_SWEEPNOTIFY and
-                           SOPHOS_IID_SWEEPDISKCHANGE are supported.
+                           (see manual for a list of IIDs supported).
             pCallbackInterface      
                            A pointer to the callback object created by the caller
                            and register for callbacks.
@@ -203,29 +206,32 @@ public:
          Return value:
             
             Success codes:
-            S_OK           The callback object was successfully registered.
+            SOPHOS_S_OK    The callback object was successfully registered.
 
             Failure codes:
-            SOPHOS_SAVI2_ERROR_NOT_INITIALISED
+            SOPHOS_SAVI_ERROR_NOT_INITIALISED
                            Neither initialisation function has been called.
-      		SOPHOS_SAVI2_ERROR_UPGRADE_FAILED
+      	    SOPHOS_SAVI_ERROR_UPGRADE_FAILED
                            An attempt to upgrade the sweep engine failed and the SAVI
                            interface is temporarily unavailable.
-            E_INVALIDARG   pCallbackInterface did not point to a valid memory location.
-            E_NOINTERFACE  NotifyIID specified a notification object type not supported by
+            SOPHOS_E_INVALIDARG   
+                           pCallbackInterface did not point to a valid memory location.
+            SOPHOS_E_NOINTERFACE  
+                           NotifyIID specified a notification object type not supported by
                            this version of SAVI.
-            E_UNEXPECTED   An unexpected error.
+            SOPHOS_E_UNEXPECTED   
+                           An unexpected error.
             Win32 platforms may also return other HRESULT values.
       */
 
    virtual HRESULT SOPHOS_STDCALL GetVirusEngineVersion( U32* pVersion,
                                                          LPOLESTR pVersionString,
                                                          U32 StringLength,
-                                                         SYSTEMTIME* pSweepDate,
+                                                         SYSTEMTIME* pVdataDate,
                                                          U32* pNumberOfDetectableViruses,
-                                                         U32* pReserved,
+                                                         U32* pVersionEx,
                                                          REFIID DetailsIID,
-                                                         void** ppIDEList ) = 0;
+                                                         void** ppDetailsList ) = 0;
 
       /* Description:
             Get the version number, text and date of the virus sweep engine, together
@@ -239,50 +245,54 @@ public:
             pVersionString A pointer to a buffer for the version string. This can be NULL
                            if not required.
             StringLength   The size of the buffer allocatef for pVersionString IN CHARACTERS.
-            pSweepDate     A pointer to a location for the sweep date. This can be NULL
-                           if not required.
+            pVdataDate     A pointer to a location for the date of the main virus data. This 
+                           can be NULL if not required.
             pNumberOfDetectableViruses
                            A pointer to a location for the number of detectable viruses. 
                            This can be NULL if not required.
-            pReserved      This value is reserved for future use.
+            pSubVersion    A pointer to a location for sub-version number.  Can be NULL if 
+                           not required.
             DetailsIID     Identifies the type of the identity file details to be returned.
                            At present this must be SOPHOS_IID_ENUM_IDEDETAILS.
-            ppIDEList      A pointer to a pointer to an IEnumIDEDetails object which
-                           will be created by this function. The object can be used
-                           by the caller to enumerate any identity files installed.
-                           If there are none, an enumerator containing zero items is returned. 
-                           When the caller has finished with the enumerator object, 
-                           it must call Release() on the object.
+            ppDetailsList  A pointer to a pointer to the interface object created by this 
+                           function. The object can be used by the client to enumerate 
+                           objects of the class specified by the DetailsIID parameter. If 
+                           there are none, an enumerator containing zero items is returned. 
+                           When the client has finished with the enumerator object, it must 
+                           call Release() on the object.
                            This parameter can be NULL if not required.
      
          Return value:
 
             Success codes:
             SOPHOS_S_OK    All requested information on current loaded virus engine retrieved.
-            SOPHOS_SAVI2_ERROR_OLD_VIRUS_DATA
+            SOPHOS_SAVI_ERROR_OLD_VIRUS_DATA
                            The interface was successfully initialised but the internal
-                           virus data is beyond its useful life. Sophos recomends that
+                           virus data is beyond its useful life. Sophos recommends that
                            the virus engine be upgraded to a newer version as soon as
                            possible.
-                           NB if both SOPHOS_SAVI2_ERROR_OLD_VIRUS_DATA and
-                           SOPHOS_SAVI2_ERROR_PARTIAL_INFORMATION are true then 
-                           SOPHOS_SAVI2_ERROR_OLD_VIRUS_DATA will be returned.
+                           NB if both SOPHOS_SAVI_ERROR_OLD_VIRUS_DATA and
+                           SOPHOS_SAVI_ERROR_PARTIAL_INFORMATION are true then 
+                           SOPHOS_SAVI_ERROR_OLD_VIRUS_DATA will be returned.
 
-            SOPHOS_SAVI2_ERROR_PARTIAL_INFORMATION
+            SOPHOS_SAVI_ERROR_PARTIAL_INFORMATION
                            Some of the  requested information on current loaded virus engine
                            could not be retrieved .
 
             Failure codes:
-            SOPHOS_SAVI2_ERROR_NOT_INITIALISED
+            SOPHOS_SAVI_ERROR_NOT_INITIALISED
                            Neither initialisation function has been called.
-      		SOPHOS_SAVI2_ERROR_UPGRADE_FAILED
+      		SOPHOS_SAVI_ERROR_UPGRADE_FAILED
                            An attempt to upgrade the sweep engine failed and the SAVI
                            interface is temporarily unavailable.
-            E_INVALIDARG   ppResults was non-NULL but did not point to a valid memory
+            SOPHOS_E_INVALIDARG   
+                           ppResults was non-NULL but did not point to a valid memory
                            location.
-            E_NOINTERFACE  DetailsIID specified a details object type not supported by
+            SOPHOS_E_NOINTERFACE  
+                           DetailsIID specified a details object type not supported by
                            this version of SAVI.
-            E_UNEXPECTED   An unexpected error.
+            SOPHOS_E_UNEXPECTED   
+                           An unexpected error.
             Win32 platforms may also return other HRESULT values.
       */
 
@@ -296,12 +306,13 @@ public:
          Return value:
 
             Success codes:
-            S_OK           The file was successfully swept and contained no viruses.
+            SOPHOS_S_OK    Termination was successful.
 
             Failure codes:
-            SOPHOS_SAVI2_ERROR_NOT_INITIALISED
+            SOPHOS_SAVI_ERROR_NOT_INITIALISED
                            Neither initialisation function has been called.
-            E_UNEXPECTED   An unexpected error.
+            SOPHOS_E_UNEXPECTED   
+                           An unexpected error.
             Win32 platforms may also return other HRESULT values.
       */
 
@@ -315,73 +326,56 @@ public:
          Return value:
 
             Success codes:
-            S_OK           The file was successfully swept and contained no viruses.
+            SOPHOS_S_OK    Default values were restored successfully.
 
             Failure codes:
-            SOPHOS_SAVI2_ERROR_NOT_INITIALISED
+            SOPHOS_SAVI_ERROR_NOT_INITIALISED
                            Neither initialisation function has been called.
-      		SOPHOS_SAVI2_ERROR_UPGRADE_FAILED
+      		SOPHOS_SAVI_ERROR_UPGRADE_FAILED
                            An attempt to upgrade the sweep engine failed and the SAVI
                            interface is temporarily unavailable.
-            SOPHOS_SAVI2_ERROR_INIT_CONFIGURATION                             
+            SOPHOS_SAVI_ERROR_INIT_CONFIGURATION                             
                            An internal error occured initialising the engine configuration.
-            E_UNEXPECTED   An unexpected error.
+            SOPHOS_E_UNEXPECTED   
+                           An unexpected error.
             Win32 platforms may also return other HRESULT values.
       */
 
    virtual HRESULT SOPHOS_STDCALL ReadConfig() = 0;
       /* Description:
-            Reads all configuration values from permanent storage.    
-            This occurs automatically when the interface is initialised.
+            Not implemented in current versions of SAVI. 
             
          Parameters:
             none.
 
          Return value:
 
-            Success codes:
-            S_OK           The file was successfully swept and contained no viruses.
-
             Failure codes:
-            SOPHOS_SAVI2_ERROR_NOT_INITIALISED
-                           Neither initialisation function has been called.
-      		SOPHOS_SAVI2_ERROR_UPGRADE_FAILED
-                           An attempt to upgrade the sweep engine failed and the SAVI
-                           interface is temporarily unavailable.
-            E_UNEXPECTED   An unexpected error.
-            Win32 platforms may also return other HRESULT values.
+            SOPHOS_SAVI_ERROR_NOT_SUPPORTED
+                           Function not supported.
       */
 
    virtual HRESULT SOPHOS_STDCALL WriteConfig() = 0;
       /* Description:
-            Writes all configuration values to permanent storage.    
-            This occurs automatically when the interface terminated.
+            Not implemented in current versions of SAVI. 
             
          Parameters:
             none.
 
          Return value:
 
-            Success codes:
-            S_OK           The file was successfully swept and contained no viruses.
-
             Failure codes:
-            SOPHOS_SAVI2_ERROR_NOT_INITIALISED
-                           Neither initialisation function has been called.
-      		SOPHOS_SAVI2_ERROR_UPGRADE_FAILED
-                           An attempt to upgrade the sweep engine failed and the SAVI
-                           interface is temporarily unavailable.
-            E_UNEXPECTED   An unexpected error.
-            Win32 platforms may also return other HRESULT values.
+            SOPHOS_SAVI_ERROR_NOT_SUPPORTED
+                           Function not supported.
       */
 
-   virtual HRESULT SOPHOS_STDCALL GetConfigEnumerator(REFIID ConfigIID, void **ppConfigs) = 0;
+   virtual HRESULT SOPHOS_STDCALL GetConfigEnumerator( REFIID ConfigIID, void **ppConfigs ) = 0;
       /* Description:
             Get an enumerator object which will enumerate the configuration values and types
             supported by this interface.
 
          Parameters:
-            ConfigIID     Identifies the type of the configuration data to be returned.
+            ConfigIID      Identifies the type of the configuration data to be returned.
                            At present this must be SOPHOS_IID_ENUM_ENGINECONFIG.
             ppResults      A pointer to a pointer to an IEnumEngineConfigs object which
                            will be created by this function. When the caller has finished 
@@ -390,25 +384,28 @@ public:
          Return value:
             
             Success codes:
-            S_OK           The infected sector was successfully disinfected
+            SOPHOS_S_OK    The enumerator object was obtained successfully.
 
             Failure codes:
-            SOPHOS_SAVI2_ERROR_NOT_INITIALISED
+            SOPHOS_SAVI_ERROR_NOT_INITIALISED
                            Neither initialisation function has been called.
-      		SOPHOS_SAVI2_ERROR_UPGRADE_FAILED
+      		SOPHOS_SAVI_ERROR_UPGRADE_FAILED
                            An attempt to upgrade the sweep engine failed and the SAVI
                            interface is temporarily unavailable.
-            E_INVALIDARG   ppCOnfigs was non-NULL but did not point to a valid memory
+            SOPHOS_E_INVALIDARG   
+                           ppCOnfigs was non-NULL but did not point to a valid memory
                            location.
-            E_NOINTERFACE  ConfigIID specified a configuration object type not supported by
+            SOPHOS_E_NOINTERFACE  
+                           ConfigIID specified a configuration object type not supported by
                            this version of SAVI.
-            E_UNEXPECTED   An unexpected error.
+            SOPHOS_E_UNEXPECTED   
+                           An unexpected error.
             Win32 platforms may also return other HRESULT values.
       */
 
-   virtual HRESULT SOPHOS_STDCALL SetConfigValue (LPCOLESTR pValueName,
-                                          U32 Type,
-                                          LPCOLESTR pData) = 0;
+   virtual HRESULT SOPHOS_STDCALL SetConfigValue( LPCOLESTR pValueName,
+                                                  U32 Type,
+                                                  LPCOLESTR pData ) = 0;
       /* Description:
             Set the value of a specific sweep engine configuration parameter.
             
@@ -423,27 +420,28 @@ public:
          Return value:
 
             Success codes:
-            S_OK           The parameter value was set correctly.
+            SOPHOS_S_OK    The parameter value was set correctly.
 
             Failure codes:
-            SOPHOS_SAVI2_ERROR_NOT_INITIALISED
+            SOPHOS_SAVI_ERROR_NOT_INITIALISED
                            Neither initialisation function has been called.
-      		SOPHOS_SAVI2_ERROR_UPGRADE_FAILED
+      		SOPHOS_SAVI_ERROR_UPGRADE_FAILED
                            An attempt to upgrade the sweep engine failed and the SAVI
                            interface is temporarily unavailable.
-            SOPHOS_SAVI2_ERROR_INVALID_CONFIG_NAME
+            SOPHOS_SAVI_ERROR_INVALID_CONFIG_NAME
                            The combination of parameter name and type was not valid.
             SOPHOS_ERROR_INVALID_PARAMETER
                            In error occured storing the value supplied.
-            E_UNEXPECTED   An unexpected error.
+            SOPHOS_E_UNEXPECTED   
+                           An unexpected error.
             Win32 platforms may also return other HRESULT values.
       */
 
-   virtual HRESULT SOPHOS_STDCALL GetConfigValue(LPCOLESTR pValueName,
-                                         U32 Type,
-                                         U32 MaxSize,
-                                         LPOLESTR pData,
-                                         U32* pSize ) = 0;
+   virtual HRESULT SOPHOS_STDCALL GetConfigValue( LPCOLESTR pValueName,
+                                                  U32 Type,
+                                                  U32 MaxSize,
+                                                  LPOLESTR pData,
+                                                  U32* pSize ) = 0;
       /* Description:
             Get the value of a specific sweep engine configuration parameter.
             
@@ -453,31 +451,34 @@ public:
             MaxSize        The number of characters allocated by the caller for the value.
             pData          Pointer to a buffer of length MaxSize which will receive the value.
                            Supply NULL if you do not require this value.
-            pSize          This location receives the total length of the IDE name 
+            pSize          This location receives the total length of the config value 
                            INCLUDING TERMINATOR, in characters.
 
          Return value:
 
             Success codes:
-            S_OK           The buffer supplied was big enough and the name was copied into it.
+            SOPHOS_S_OK    The buffer supplied was big enough and the name was copied into it.
                            
             Failure codes:
-            SOPHOS_SAVI2_ERROR_BUFFER_TOO_SMALL
+            SOPHOS_SAVI_ERROR_BUFFER_TOO_SMALL
                            The buffer supplied by the user was not big enough.
-            SOPHOS_SAVI2_ERROR_NOT_INITIALISED
+            SOPHOS_SAVI_ERROR_NOT_INITIALISED
                            Neither initialisation function has been called.
-      		SOPHOS_SAVI2_ERROR_UPGRADE_FAILED
+      		SOPHOS_SAVI_ERROR_UPGRADE_FAILED
                            An attempt to upgrade the sweep engine failed and the SAVI
                            interface is temporarily unavailable.
-            SOPHOS_SAVI2_ERROR_INVALID_CONFIG_NAME
+            SOPHOS_SAVI_ERROR_INVALID_CONFIG_NAME
                            The combination of parameter name and type was not valid.
             SOPHOS_ERROR_INVALID_PARAMETER
                            In error occured storing the value supplied.
-            E_UNEXPECTED   An unexpected error.
+            SOPHOS_E_UNEXPECTED   
+                           An unexpected error.
             Win32 platforms may also return other HRESULT values.
       */
 
-   virtual HRESULT SOPHOS_STDCALL SweepFile(LPCOLESTR pFileName, REFIID ResultsIID, void **ppResults) = 0;
+   virtual HRESULT SOPHOS_STDCALL SweepFile( LPCOLESTR pFileName, 
+                                             REFIID ResultsIID, 
+                                             void **ppResults ) = 0;
       /* Description:
             Sweep a file for viruses. 
 
@@ -495,44 +496,53 @@ public:
                            results object is created.
      
          Return value:
-            Note that there are two success codes so it is recommended that callers
+            Note that there are multiple success codes so it is recommended that callers
             use the SUCCEEDED() macro to test for successful completion of this function.
             
             Success codes:
-            S_OK           The file was successfully swept and contained no viruses.
-            SOPHOS_SAVI2_ERROR_VIRUSPRESENT
+            SOPHOS_S_OK    The file was successfully swept and contained no viruses.
+            SOPHOS_SAVI_ERROR_VIRUSPRESENT
                            The file was successfully swept and contained one or more viruses.
+            SOPHOS_SAVI_ERROR_OLD_VIRUS_DATA
+                           The file was successfully swept but the internal virus data is 
+                           beyond its useful life. Sophos recommends that the virus engine be 
+                           upgraded to a newer version as soon as possible.
 
             Failure codes:
-            SOPHOS_SAVI2_ERROR_NOT_INITIALISED
+            SOPHOS_SAVI_ERROR_NOT_INITIALISED
                            Neither initialisation function has been called.
-      		SOPHOS_SAVI2_ERROR_UPGRADE_FAILED
+      		SOPHOS_SAVI_ERROR_UPGRADE_FAILED
                            An attempt to upgrade the sweep engine failed and the SAVI
                            interface is temporarily unavailable.
-            E_INVALIDARG   ppResults was non-NULL but did not point to a valid memory
+            SOPHOS_E_INVALIDARG   
+                           ppResults was non-NULL but did not point to a valid memory
                            location.
-            E_NOINTERFACE  ResultsIID specified a results object type not supported by
+            SOPHOS_E_NOINTERFACE  
+                           ResultsIID specified a results object type not supported by
                            this version of SAVI.
             RPC_E_WRONG_THREAD
                            A callback was installed using RegisterNotification() on a 
                            different thread to the current one. Both calls must be on the
                            same thread.
-            SOPHOS_SAVI2_ERROR_IC_INCOMPATIBLE_VERSION
+            SOPHOS_SAVI_ERROR_IC_INCOMPATIBLE_VERSION
                            The version of intercheck installed is not compatible with
                            this version of SAVI.
-            SOPHOS_SAVI2_ERROR_IC_ACCESS_DENIED
+            SOPHOS_SAVI_ERROR_IC_ACCESS_DENIED
                            The calling process does not have sufficient rights to disable 
                            the InterCheck client.
-            SOPHOS_SAVI2_ERROR_IC_SCAN_PREVENTED
+            SOPHOS_SAVI_ERROR_IC_SCAN_PREVENTED
                            The InterCheck client could not be disabled.    
-            SOPHOS_SAVI2_ERROR_SWEEPFAILURE
+            SOPHOS_SAVI_ERROR_SWEEPFAILURE
                            The sweep engine could not sweep the file.
                            Call GetLastError() for more information.
-            E_UNEXPECTED   An unexpected error.
+            SOPHOS_E_UNEXPECTED   
+                           An unexpected error.
             Win32 platforms may also return other HRESULT values.
       */
 
-   virtual HRESULT SOPHOS_STDCALL DisinfectFile(LPCOLESTR pFileName, REFIID ResultsIID, void **ppResults ) = 0;
+   virtual HRESULT SOPHOS_STDCALL DisinfectFile( LPCOLESTR pFileName, 
+                                                 REFIID ResultsIID, 
+                                                 void **ppResults ) = 0;
       /* Description:
             Attempt to disinfect a file which contains a virus, then sweep the file to
             see if it contains any viruses after the attempt.
@@ -554,39 +564,49 @@ public:
          Return value:
 
             Success codes:
-            S_OK           The infected file was successfully disinfected
+            Note that there are multiple success codes so it is recommended that callers
+            use the SUCCEEDED() macro to test for successful completion of this function.
+            
+            SOPHOS_S_OK    The infected file was successfully disinfected
+            SOPHOS_SAVI_ERROR_OLD_VIRUS_DATA
+                           The infected file was successfully disinfected but the internal 
+                           virus data is beyond its useful life. Sophos recommends that the 
+                           virus engine be upgraded to a newer version as soon as possible.
 
             Failure codes:
-            SOPHOS_SAVI2_ERROR_DISINFECTION_UNAVAILABLE
+            SOPHOS_SAVI_ERROR_DISINFECTION_UNAVAILABLE
                            The file could not be disinfected. Either it initially contained
                            no virus, or the virus could not be removed.
-            SOPHOS_SAVI2_ERROR_DISINFECTION_FAILED
+            SOPHOS_SAVI_ERROR_DISINFECTION_FAILED
                            The virus could not be removed, the disinfection attempt failed.
-            SOPHOS_SAVI2_ERROR_NOT_INITIALISED
+            SOPHOS_SAVI_ERROR_NOT_INITIALISED
                            Neither initialisation function has been called.
-      		SOPHOS_SAVI2_ERROR_UPGRADE_FAILED
+      		SOPHOS_SAVI_ERROR_UPGRADE_FAILED
                            An attempt to upgrade the sweep engine failed and the SAVI
                            interface is temporarily unavailable.
-            E_INVALIDARG   ppResults was non-NULL but did not point to a valid memory
+            SOPHOS_E_INVALIDARG   
+                           ppResults was non-NULL but did not point to a valid memory
                            location.
-            E_NOINTERFACE  ResultsIID specified a results object type not supported by
+            SOPHOS_E_NOINTERFACE  
+                           ResultsIID specified a results object type not supported by
                            this version of SAVI.
             RPC_E_WRONG_THREAD
                            A callback was installed using RegisterNotification() on a 
                            different thread to the current one. Both calls must be on the
                            same thread.
-            SOPHOS_SAVI2_ERROR_IC_INCOMPATIBLE_VERSION
+            SOPHOS_SAVI_ERROR_IC_INCOMPATIBLE_VERSION
                            The version of intercheck installed is not compatible with
                            this version of SAVI.
-            SOPHOS_SAVI2_ERROR_IC_ACCESS_DENIED
+            SOPHOS_SAVI_ERROR_IC_ACCESS_DENIED
                            The calling process does not have sufficient rights to disable 
                            the InterCheck client.
-            SOPHOS_SAVI2_ERROR_IC_SCAN_PREVENTED
+            SOPHOS_SAVI_ERROR_IC_SCAN_PREVENTED
                            The InterCheck client could not be disabled.    
-            SOPHOS_SAVI2_ERROR_SWEEPFAILURE
+            SOPHOS_SAVI_ERROR_SWEEPFAILURE
                            The sweep engine could not sweep the file.
                            Call GetLastError() for more information.
-            E_UNEXPECTED   An unexpected error.
+            SOPHOS_E_UNEXPECTED   
+                           An unexpected error.
             Win32 platforms may also return other HRESULT values.
       */
 
@@ -623,41 +643,47 @@ public:
                            results object is created.
      
          Return value:
-            Note that there are two success codes so it is recommended that callers
+            Note that there are multiple success codes so it is recommended that callers
             use the SOPHOS_SUCCEEDED() macro to test for successful completion of this function.
             
             Success codes:
-            S_OK           The sector was successfully swept and contained no viruses.
-            SOPHOS_SAVI2_ERROR_VIRUSPRESENT
+            SOPHOS_S_OK    The sector was successfully swept and contained no viruses.
+            SOPHOS_SAVI_ERROR_VIRUSPRESENT
                            The sector was successfully swept and contained one or more viruses.
-
+            SOPHOS_SAVI_ERROR_OLD_VIRUS_DATA
+                           The sector was successfully swept but the internal virus data is 
+                           beyond its useful life. Sophos recommends that the virus engine be 
+                           upgraded to a newer version as soon as possible.
+            
             Failure codes:
-            SOPHOS_SAVI2_ERROR_NOT_INITIALISED
+            SOPHOS_SAVI_ERROR_NOT_INITIALISED
                            Neither initialisation function has been called.
-      		SOPHOS_SAVI2_ERROR_UPGRADE_FAILED
+      		SOPHOS_SAVI_ERROR_UPGRADE_FAILED
                            An attempt to upgrade the sweep engine failed and the SAVI
                            interface is temporarily unavailable.
-            E_INVALIDARG   ppResults was non-NULL but did not point to a valid memory
-                           location.
-            E_NOINTERFACE  ResultsIID specified a results object type not supported by
+            SOPHOS_E_INVALIDARG   
+                           Either an invalid drive name was supplied or ppResults was 
+                           non-NULL but did not point to a valid memory location.
+            SOPHOS_E_NOINTERFACE  
+                           ResultsIID specified a results object type not supported by
                            this version of SAVI.
             RPC_E_WRONG_THREAD
                            A callback was installed using RegisterNotification() on a 
                            different thread to the current one. Both calls must be on the
                            same thread.
-            SOPHOS_SAVI2_ERROR_IC_INCOMPATIBLE_VERSION
+            SOPHOS_SAVI_ERROR_IC_INCOMPATIBLE_VERSION
                            The version of intercheck installed is not compatible with
                            this version of SAVI.
-            SOPHOS_SAVI2_ERROR_IC_ACCESS_DENIED
+            SOPHOS_SAVI_ERROR_IC_ACCESS_DENIED
                            The calling process does not have sufficient rights to disable 
                            the InterCheck client.
-            SOPHOS_SAVI2_ERROR_IC_SCAN_PREVENTED
+            SOPHOS_SAVI_ERROR_IC_SCAN_PREVENTED
                            The InterCheck client could not be disabled.    
-            SOPHOS_SAVI2_ERROR_SWEEPFAILURE
+            SOPHOS_SAVI_ERROR_SWEEPFAILURE
                            The sweep engine could not sweep the sector.
                            Call GetLastError() for more information.
-            E_INVALIDARG   An invalid drive name was supplied.
-            E_UNEXPECTED   An unexpected error.
+            SOPHOS_E_UNEXPECTED   
+                           An unexpected error.
             Win32 platforms may also return other HRESULT values.
       */
 
@@ -696,41 +722,47 @@ public:
                            results object is created.
      
          Return value:
-            Note that there are two success codes so it is recommended that callers
+            Note that there are multiple success codes so it is recommended that callers
             use the SOPHOS_SUCCEEDED() macro to test for successful completion of this function.
             
             Success codes:
-            S_OK           The sector was successfully swept and contained no viruses.
-            SOPHOS_SAVI2_ERROR_VIRUSPRESENT
+            SOPHOS_S_OK    The sector was successfully swept and contained no viruses.
+            SOPHOS_SAVI_ERROR_VIRUSPRESENT
                            The sector was successfully swept and contained one or more viruses.
+            SOPHOS_SAVI_ERROR_OLD_VIRUS_DATA
+                           The sector was successfully swept but the internal virus data is 
+                           beyond its useful life. Sophos recommends that the virus engine be 
+                           upgraded to a newer version as soon as possible.
 
             Failure codes:
-            SOPHOS_SAVI2_ERROR_NOT_INITIALISED
+            SOPHOS_SAVI_ERROR_NOT_INITIALISED
                            Neither initialisation function has been called.
-      		SOPHOS_SAVI2_ERROR_UPGRADE_FAILED
+      		SOPHOS_SAVI_ERROR_UPGRADE_FAILED
                            An attempt to upgrade the sweep engine failed and the SAVI
                            interface is temporarily unavailable.
-            E_INVALIDARG   ppResults was non-NULL but did not point to a valid memory
-                           location.
-            E_NOINTERFACE  ResultsIID specified a results object type not supported by
+            SOPHOS_E_INVALIDARG   
+                           Either an invalid drive name was supplied or ppResults was 
+                           non-NULL but did not point to a valid memory location.
+            SOPHOS_E_NOINTERFACE  
+                           ResultsIID specified a results object type not supported by
                            this version of SAVI.
             RPC_E_WRONG_THREAD
                            A callback was installed using RegisterNotification() on a 
                            different thread to the current one. Both calls must be on the
                            same thread.
-            SOPHOS_SAVI2_ERROR_IC_INCOMPATIBLE_VERSION
+            SOPHOS_SAVI_ERROR_IC_INCOMPATIBLE_VERSION
                            The version of intercheck installed is not compatible with
                            this version of SAVI.
-            SOPHOS_SAVI2_ERROR_IC_ACCESS_DENIED
+            SOPHOS_SAVI_ERROR_IC_ACCESS_DENIED
                            The calling process does not have sufficient rights to disable 
                            the InterCheck client.
-            SOPHOS_SAVI2_ERROR_IC_SCAN_PREVENTED
+            SOPHOS_SAVI_ERROR_IC_SCAN_PREVENTED
                            The InterCheck client could not be disabled.    
-            SOPHOS_SAVI2_ERROR_SWEEPFAILURE
+            SOPHOS_SAVI_ERROR_SWEEPFAILURE
                            The sweep engine could not sweep the sector.
                            Call GetLastError() for more information.
-            E_INVALIDARG   An invalid drive name was supplied.
-            E_UNEXPECTED   An unexpected error.
+            SOPHOS_E_UNEXPECTED   
+                           An unexpected error.
             Win32 platforms may also return other HRESULT values.
       */
 
@@ -769,50 +801,59 @@ public:
                            results object is created.
      
          Return value:
+            Note that there are multiple success codes so it is recommended that callers
+            use the SOPHOS_SUCCEEDED() macro to test for successful completion of this function.
+
             Success codes:
-            S_OK           The infected sector was successfully disinfected
+            SOPHOS_S_OK    The infected sector was successfully disinfected
+            SOPHOS_SAVI_ERROR_OLD_VIRUS_DATA
+                           The infected sector was successfully disinfected but the internal 
+                           virus data is beyond its useful life. Sophos recommends that the 
+                           virus engine be upgraded to a newer version as soon as possible.
 
             Failure codes:
-            SOPHOS_SAVI2_ERROR_DISINFECTION_UNAVAILABLE
+            SOPHOS_SAVI_ERROR_DISINFECTION_UNAVAILABLE
                            The sector could not be disinfected. Either it initially contained
                            no virus, or the virus could not be removed.
-            SOPHOS_SAVI2_ERROR_DISINFECTION_FAILED
+            SOPHOS_SAVI_ERROR_DISINFECTION_FAILED
                            The virus could not be removed, the disinfection attempt failed.
-            SOPHOS_SAVI2_ERROR_NOT_INITIALISED
+            SOPHOS_SAVI_ERROR_NOT_INITIALISED
                            Neither initialisation function has been called.
-      		SOPHOS_SAVI2_ERROR_UPGRADE_FAILED
+      		SOPHOS_SAVI_ERROR_UPGRADE_FAILED
                            An attempt to upgrade the sweep engine failed and the SAVI
                            interface is temporarily unavailable.
-            E_INVALIDARG   ppResults was non-NULL but did not point to a valid memory
-                           location.
-            E_NOINTERFACE  ResultsIID specified a results object type not supported by
+            SOPHOS_E_INVALIDARG   
+                           Either an invalid drive name was supplied or ppResults was 
+                           non-NULL but did not point to a valid memory location.
+            SOPHOS_E_NOINTERFACE  
+                           ResultsIID specified a results object type not supported by
                            this version of SAVI.
             RPC_E_WRONG_THREAD
                            A callback was installed using RegisterNotification() on a 
                            different thread to the current one. Both calls must be on the
                            same thread.
-            SOPHOS_SAVI2_ERROR_IC_INCOMPATIBLE_VERSION
+            SOPHOS_SAVI_ERROR_IC_INCOMPATIBLE_VERSION
                            The version of intercheck installed is not compatible with
                            this version of SAVI.
-            SOPHOS_SAVI2_ERROR_IC_ACCESS_DENIED
+            SOPHOS_SAVI_ERROR_IC_ACCESS_DENIED
                            The calling process does not have sufficient rights to disable 
                            the InterCheck client.
-            SOPHOS_SAVI2_ERROR_IC_SCAN_PREVENTED
+            SOPHOS_SAVI_ERROR_IC_SCAN_PREVENTED
                            The InterCheck client could not be disabled.    
-            SOPHOS_SAVI2_ERROR_SWEEPFAILURE
+            SOPHOS_SAVI_ERROR_SWEEPFAILURE
                            The sweep engine could not sweep the sector.
                            Call GetLastError() for more information.
-            E_INVALIDARG   An invalid drive name was supplied.
-            E_UNEXPECTED   An unexpected error.
+            SOPHOS_E_UNEXPECTED   
+                           An unexpected error.
             Win32 platforms may also return other HRESULT values.
       */
 
    virtual HRESULT SOPHOS_STDCALL DisinfectPhysicalSector( LPCOLESTR pDriveName,
-                                                       U32 Head,
-                                                       U32 Cylinder,
-                                                       U32 Sector,
-                                                       REFIID ResultsIID,
-                                                       void **ppResults ) = 0;
+                                                           U32 Head,
+                                                           U32 Cylinder,
+                                                           U32 Sector,
+                                                           REFIID ResultsIID,
+                                                           void **ppResults ) = 0;
       /* Description:
             Attempt to disinfect a physical disk sector, then sweep the sector to
             see if it contains any viruses after the attempt.
@@ -840,46 +881,50 @@ public:
                            results object is created.
      
          Return value:
-            Note that there are two success codes so it is recommended that callers
+            Note that there are multiple success codes so it is recommended that callers
             use the SOPHOS_SUCCEEDED() macro to test for successful completion of this function.
             
             Success codes:
-            S_OK           The sector was successfully swept and contained no viruses.
-            SOPHOS_SAVI2_ERROR_VIRUSPRESENT
-                           The sector was successfully swept and contained one or more viruses.
+            SOPHOS_S_OK    The infected sector was successfully disinfected.
+            SOPHOS_SAVI_ERROR_OLD_VIRUS_DATA
+                           The infected sector was successfully disinfected but the internal 
+                           virus data is beyond its useful life. Sophos recommends that the 
+                           virus engine be upgraded to a newer version as soon as possible.
 
             Failure codes:
-            SOPHOS_SAVI2_ERROR_NOT_INITIALISED
+            SOPHOS_SAVI_ERROR_NOT_INITIALISED
                            Neither initialisation function has been called.
-      		SOPHOS_SAVI2_ERROR_UPGRADE_FAILED
+      		SOPHOS_SAVI_ERROR_UPGRADE_FAILED
                            An attempt to upgrade the sweep engine failed and the SAVI
                            interface is temporarily unavailable.
-            E_INVALIDARG   ppResults was non-NULL but did not point to a valid memory
-                           location.
-            E_NOINTERFACE  ResultsIID specified a results object type not supported by
+            SOPHOS_E_INVALIDARG   
+                           Either an invalid drive name was supplied or ppResults was 
+                           non-NULL but did not point to a valid memory location.
+            SOPHOS_E_NOINTERFACE  
+                           ResultsIID specified a results object type not supported by
                            this version of SAVI.
             RPC_E_WRONG_THREAD
                            A callback was installed using RegisterNotification() on a 
                            different thread to the current one. Both calls must be on the
                            same thread.
-            SOPHOS_SAVI2_ERROR_IC_INCOMPATIBLE_VERSION
+            SOPHOS_SAVI_ERROR_IC_INCOMPATIBLE_VERSION
                            The version of intercheck installed is not compatible with
                            this version of SAVI.
-            SOPHOS_SAVI2_ERROR_IC_ACCESS_DENIED
+            SOPHOS_SAVI_ERROR_IC_ACCESS_DENIED
                            The calling process does not have sufficient rights to disable 
                            the InterCheck client.
-            SOPHOS_SAVI2_ERROR_IC_SCAN_PREVENTED
+            SOPHOS_SAVI_ERROR_IC_SCAN_PREVENTED
                            The InterCheck client could not be disabled.    
-            SOPHOS_SAVI2_ERROR_SWEEPFAILURE
+            SOPHOS_SAVI_ERROR_SWEEPFAILURE
                            The sweep engine could not sweep the sector.
                            Call GetLastError() for more information.
-            E_INVALIDARG   An invalid drive name was supplied.
-            E_UNEXPECTED   An unexpected error.
+            SOPHOS_E_UNEXPECTED   
+                           An unexpected error.
             Win32 platforms may also return other HRESULT values.
       */
 
 
-   virtual HRESULT SOPHOS_STDCALL SweepMemory(REFIID ResultsIID, void **ppResults) = 0;
+   virtual HRESULT SOPHOS_STDCALL SweepMemory( REFIID ResultsIID, void **ppResults ) = 0;
       /* Description:
             Sweeps memory for viruses. This facility is not supported on all platforms.
 
@@ -896,108 +941,115 @@ public:
                            results object is created.
      
          Return value:
-            Note that there are two success codes so it is recommended that callers
+            Note that there are multiple success codes so it is recommended that callers
             use the SUCCEEDED() macro to test for successful completion of this function.
             
             Success codes:
-            S_OK           Memory  was successfully swept and contained no viruses.
-            SOPHOS_SAVI2_ERROR_VIRUSPRESENT
+            SOPHOS_S_OK    Memory was successfully swept and contained no viruses.
+            SOPHOS_SAVI_ERROR_VIRUSPRESENT
                            Memory was successfully swept and contained one or more viruses.
-
+            SOPHOS_SAVI_ERROR_OLD_VIRUS_DATA
+                           Memory was successfully swept but the internal virus data is 
+                           beyond its useful life. Sophos recommends that the virus engine be 
+                           upgraded to a newer version as soon as possible.
+            
             Failure codes:
-            SOPHOS_SAVI2_ERROR_NOT_INITIALISED
+            SOPHOS_SAVI_ERROR_NOT_INITIALISED
                            Neither initialisation function has been called.
-      		SOPHOS_SAVI2_ERROR_UPGRADE_FAILED
+      		SOPHOS_SAVI_ERROR_UPGRADE_FAILED
                            An attempt to upgrade the sweep engine failed and the SAVI
                            interface is temporarily unavailable.
-            E_INVALIDARG   ppResults was non-NULL but did not point to a valid memory
+            SOPHOS_E_INVALIDARG   
+                           ppResults was non-NULL but did not point to a valid memory
                            location.
-            E_NOINTERFACE  ResultsIID specified a results object type not supported by
+            SOPHOS_E_NOINTERFACE  
+                           ResultsIID specified a results object type not supported by
                            this version of SAVI.
             RPC_E_WRONG_THREAD
                            A callback was installed using RegisterNotification() on a 
                            different thread to the current one. Both calls must be on the
                            same thread.
-            SOPHOS_SAVI2_ERROR_IC_INCOMPATIBLE_VERSION
+            SOPHOS_SAVI_ERROR_IC_INCOMPATIBLE_VERSION
                            The version of intercheck installed is not compatible with
                            this version of SAVI.
-            SOPHOS_SAVI2_ERROR_IC_ACCESS_DENIED
+            SOPHOS_SAVI_ERROR_IC_ACCESS_DENIED
                            The calling process does not have sufficient rights to disable 
                            the InterCheck client.
-            SOPHOS_SAVI2_ERROR_IC_SCAN_PREVENTED
+            SOPHOS_SAVI_ERROR_IC_SCAN_PREVENTED
                            The InterCheck client could not be disabled.    
-            SOPHOS_SAVI2_ERROR_SWEEPFAILURE
+            SOPHOS_SAVI_ERROR_SWEEPFAILURE
                            The sweep engine could not sweep memory.
                            Call GetLastError() for more information.
-            SOPHOS_SAVI2_ERROR_NOT_SUPPORTED
+            SOPHOS_SAVI_ERROR_NOT_SUPPORTED
                            Memory sweeping is not supported on this platform.
-            SOPHOS_SAVI2_ERROR_COULD_NOT_OPEN
+            SOPHOS_SAVI_ERROR_COULD_NOT_OPEN
                            An error occured scanning memory.
-            E_UNEXPECTED   An unexpected error.
+            SOPHOS_E_UNEXPECTED   
+                           An unexpected error.
             Win32 platforms may also return other HRESULT values.
       */
 
-   virtual HRESULT SOPHOS_STDCALL Disinfect(REFIID ToDisinfectIID, void *pToDisinfect) = 0;
+   virtual HRESULT SOPHOS_STDCALL Disinfect( REFIID ToDisinfectIID, void *pToDisinfect ) = 0;
       /* Description:
-            Attempt to disinfect a file or a disk sector. This member function uses
+            Attempt to disinfect a particular virus. This member function uses
             the results of a previous sweep to identify viruses to disinfect.
 
          Parameters:
             ToDisinfectIID Identifies the type of the results supplied, which were returned
-                           by a previous call to SweepFile() or SweepSector().
+                           by a previous call to one of the SweepXxxx() methods.
                            At present this must be SOPHOS_IID_SWEEPRESULTS.
-            pToDisinfect   Points to a SweepResults object identifying the file or
-                           sector to disinfect.
+            pToDisinfect   Points to a SweepResults object identifying the virus to disinfect.
      
          Return value:
             Success codes:
-            S_OK           The infected sector was successfully disinfected
+            SOPHOS_S_OK    The infected object was successfully disinfected
 
             Failure codes:
-            SOPHOS_SAVI2_ERROR_DISINFECTION_UNAVAILABLE
-                           The sector could not be disinfected. Either it initially contained
-                           no virus, or the virus could not be removed.
-            SOPHOS_SAVI2_ERROR_DISINFECTION_FAILED
-                           The virus could not be removed, the disinfection attempt failed.
-            SOPHOS_SAVI2_ERROR_NOT_INITIALISED
+            SOPHOS_SAVI_ERROR_DISINFECTION_UNAVAILABLE
+                           The virus could not be removed.
+            SOPHOS_SAVI_ERROR_DISINFECTION_FAILED
+                           The disinfection attempt failed.
+            SOPHOS_SAVI_ERROR_NOT_INITIALISED
                            Neither initialisation function has been called.
-      		SOPHOS_SAVI2_ERROR_UPGRADE_FAILED
+      		SOPHOS_SAVI_ERROR_UPGRADE_FAILED
                            An attempt to upgrade the sweep engine failed and the SAVI
                            interface is temporarily unavailable.
-            E_INVALIDARG   ppResults was non-NULL but did not point to a valid memory
+            SOPHOS_E_INVALIDARG   
+                           Either an invalid drive name or file fname was supplied or 
+                           ppResults was non-NULL but did not point to a valid memory
                            location.
-            E_NOINTERFACE  ResultsIID specified a results object type not supported by
+            SOPHOS_E_NOINTERFACE  
+                           ResultsIID specified a results object type not supported by
                            this version of SAVI.
             RPC_E_WRONG_THREAD
                            A callback was installed using RegisterNotification() on a 
                            different thread to the current one. Both calls must be on the
                            same thread.
-            SOPHOS_SAVI2_ERROR_IC_INCOMPATIBLE_VERSION
+            SOPHOS_SAVI_ERROR_IC_INCOMPATIBLE_VERSION
                            The version of intercheck installed is not compatible with
                            this version of SAVI.
-            SOPHOS_SAVI2_ERROR_IC_ACCESS_DENIED
+            SOPHOS_SAVI_ERROR_IC_ACCESS_DENIED
                            The calling process does not have sufficient rights to disable 
                            the InterCheck client.
-            SOPHOS_SAVI2_ERROR_IC_SCAN_PREVENTED
+            SOPHOS_SAVI_ERROR_IC_SCAN_PREVENTED
                            The InterCheck client could not be disabled.    
-            SOPHOS_SAVI2_ERROR_SWEEPFAILURE
+            SOPHOS_SAVI_ERROR_SWEEPFAILURE
                            The sweep engine could not sweep the sector or file.
                            Call GetLastError() for more information.
-            E_INVALIDARG   An invalid drive name or file fname was supplied.
-            E_UNEXPECTED   An unexpected error.
+            SOPHOS_E_UNEXPECTED   
+                           An unexpected error.
             Win32 platforms may also return other HRESULT values.
       */
 };
 
 class IIDEDetails : public SAVI_IUNKNOWN
-/*
-   This class holds information for a single identity file.
-*/
+/* This class holds information for a single identity file. */
 {
 public:
 
-   virtual HRESULT SOPHOS_STDCALL GetName(
-         U32 ArraySize, LPOLESTR pIDEName, U32* pIDENameLength) = 0;
+   virtual HRESULT SOPHOS_STDCALL GetName( U32 ArraySize, 
+                                           LPOLESTR pIDEName, 
+                                           U32* pIDENameLength ) = 0;
       /* Description:
             Get the name of the identity file.
    
@@ -1005,27 +1057,28 @@ public:
             ArraySize      The total size of the buffer supplied to receive the name, IN
                            CHARACTERS.
             pIDEName       A pointer to the buffer which will receive the name.
-                           NULL may be supplied if this value is not requered.
+                           NULL may be supplied if this value is not required.
             pIDENameLength This location receives the total length of the IDE name 
                            INCLUDING TERMINATOR, in characters.
 
          Return value:
             
             Success codes:
-            S_OK           The buffer suppled was big enough and the name was copied into it.
+            SOPHOS_S_OK    The buffer suppled was big enough and the name was copied into it.
                            
             Failure codes:
-            SOPHOS_SAVI2_ERROR_BUFFER_TOO_SMALL
+            SOPHOS_SAVI_ERROR_BUFFER_TOO_SMALL
                            The buffer supplied by the user was not big enough.
-            E_INVALIDARG   A pointer parameter did not point to a valid memory location.
-            E_UNEXPECTED   An unexpected error.
+            SOPHOS_E_INVALIDARG   
+                           A pointer parameter did not point to a valid memory location.
+            SOPHOS_E_UNEXPECTED   
+                           An unexpected error.
             Win32 platforms may also return other HRESULT values.
       */
 
    virtual HRESULT SOPHOS_STDCALL GetType( U32 *pType ) = 0;
       /* Description:
-            Get the type of the virus identity file. IE whether this is an IDE,
-            UPD, or VDL file type. The type can be:
+            Get the type of the virus identity file. The type can be:
                SOPHOS_TYPE_IDE         A file in "IDE" format
                SOPHOS_TYPE_UPD         A file in "UPD" format
                SOPHOS_TYPE_VDL         A file in "VDL" format
@@ -1038,34 +1091,38 @@ public:
          Return value:
             
             Success codes:
-            S_OK           The state was copied into the location supplied.
+            SOPHOS_S_OK    The type code was copied into the location supplied.
                            
             Failure codes:
-            E_INVALIDARG   A pointer parameter did not point to a valid memory location.
-            E_UNEXPECTED   An unexpected error.
+            SOPHOS_E_INVALIDARG   
+                           The parameter did not point to a valid memory location.
+            SOPHOS_E_UNEXPECTED   
+                           An unexpected error.
             Win32 platforms may also return other HRESULT values.
       */
 
    
-   virtual HRESULT SOPHOS_STDCALL GetState(U32 *pState) = 0;
+   virtual HRESULT SOPHOS_STDCALL GetState( U32 *pState ) = 0;
       /* Description:
             Get the state of the virus identity file.
 
          Parameters:
             pState         A pointer to a location which will receive the state code of
-                           the file. The state can be:
+                           the identity file. The state can be:
                SOPHOS_IDE_VDL_SUCCESS        The file loaded correctly
                SOPHOS_IDE_VDL_FAILED         The file failed to load
-               SOPHOS_IDE_VDL_OLD_WARNING    The file is loaded but is out of date
+               SOPHOS_IDE_VDL_OLD_WARNING    The file loaded but is out of date
 
          Return value:
             
             Success codes:
-            S_OK           The state was copied into the location supplied.
+            SOPHOS_S_OK    The state was copied into the location supplied.
                            
             Failure codes:
-            E_INVALIDARG   A pointer parameter did not point to a valid memory location.
-            E_UNEXPECTED   An unexpected error.
+            SOPHOS_E_INVALIDARG   
+                           The parameter did not point to a valid memory location.
+            SOPHOS_E_UNEXPECTED   
+                           An unexpected error.
             Win32 platforms may also return other HRESULT values.
       */
 
@@ -1074,25 +1131,26 @@ public:
             Get the date of the virus identity file.
 
          Parameters:
-            pSweepDate     A pointer to a location for the virus identity file date.
+            pDate          A pointer to a location which will receive the date of the 
+                           identity file.
 
          Return value:
             
             Success codes:
-            S_OK           The state was copied into the location supplied.
+            SOPHOS_S_OK    The date was copied into the location supplied.
                            
             Failure codes:
-            E_INVALIDARG   A pointer parameter did not point to a valid memory location.
-            E_UNEXPECTED   An unexpected error.
+            SOPHOS_E_INVALIDARG   
+                           The parameter did not point to a valid memory location.
+            SOPHOS_E_UNEXPECTED   
+                           An unexpected error.
             Win32 platforms may also return other HRESULT values.
       */
 
 };
 
 class ISweepResults : public SAVI_IUNKNOWN
-/*
-   This class represents a single sweep engine result.
-*/
+/* This class represents a single sweep engine result. */
 {
 public:
    virtual HRESULT SOPHOS_STDCALL IsDisinfectable( U32* pIsDisinfectable ) = 0;
@@ -1102,20 +1160,22 @@ public:
          Parameters:
             pIsDisinfectable
                            A pointer to a location which will receive a non-zero value
-                           only of the virus can be disinfected.
+                           only if the virus can be disinfected.
 
          Return value:
             
             Success codes:
-            S_OK           
+            SOPHOS_S_OK           
                            
             Failure codes:
-            E_INVALIDARG   A pointer parameter did not point to a valid memory location.
-            E_UNEXPECTED   An unexpected error.
+            SOPHOS_E_INVALIDARG   
+                           The parameter did not point to a valid memory location.
+            SOPHOS_E_UNEXPECTED   
+                           An unexpected error.
             Win32 platforms may also return other HRESULT values.
       */
 
-   virtual HRESULT SOPHOS_STDCALL GetVirusType(U32* pVirusType) = 0;
+   virtual HRESULT SOPHOS_STDCALL GetVirusType( U32* pVirusType ) = 0;
       /* Description:
             Get the type of the virus.
 
@@ -1128,16 +1188,19 @@ public:
          Return value:
             
             Success codes:
-            S_OK           
+            SOPHOS_S_OK           
                            
             Failure codes:
-            E_INVALIDARG   A pointer parameter did not point to a valid memory location.
-            E_UNEXPECTED   An unexpected error.
+            SOPHOS_E_INVALIDARG   
+                           The parameter did not point to a valid memory location.
+            SOPHOS_E_UNEXPECTED   
+                           An unexpected error.
             Win32 platforms may also return other HRESULT values.
       */
 
-   virtual HRESULT SOPHOS_STDCALL GetVirusName(U32 ArraySize,
-         LPOLESTR pVirusName, U32* pVirusNameLength ) = 0;
+   virtual HRESULT SOPHOS_STDCALL GetVirusName( U32 ArraySize,
+                                                LPOLESTR pVirusName, 
+                                                U32* pVirusNameLength ) = 0;
       /* Description:
             Get the name of the virus
    
@@ -1145,7 +1208,7 @@ public:
             ArraySize      The total size of the buffer supplied to receive the name, IN
                            CHARACTERS.
             pVirusName     A pointer to the buffer which will receive the name.
-                           NULL may be supplied if this value is not requered.
+                           NULL may be supplied if this value is not required.
             pVirusNameLength 
                            This location receives the total length of the IDE name 
                            INCLUDING TERMINATOR, in characters.
@@ -1153,19 +1216,21 @@ public:
          Return value:
             
             Success codes:
-            S_OK           The buffer suppled was big enough and the name was copied into it.
+            SOPHOS_S_OK    The buffer suppled was big enough and the name was copied into it.
                            
             Failure codes:
-            SOPHOS_SAVI2_ERROR_BUFFER_TOO_SMALL
+            SOPHOS_SAVI_ERROR_BUFFER_TOO_SMALL
                            The buffer supplied by the user was not big enough.
-            E_INVALIDARG   A pointer parameter did not point to a valid memory location.
-            E_UNEXPECTED   An unexpected error.
+            SOPHOS_E_INVALIDARG   
+                           A pointer parameter did not point to a valid memory location.
+            SOPHOS_E_UNEXPECTED   
+                           An unexpected error.
             Win32 platforms may also return other HRESULT values.
       */
 
-   virtual HRESULT SOPHOS_STDCALL GetLocationInformation(U32 ArraySize,
-                                                 LPOLESTR pLocation,
-                                                 U32* pLocationNameLength ) = 0;
+   virtual HRESULT SOPHOS_STDCALL GetLocationInformation( U32 ArraySize,
+                                                          LPOLESTR pLocation,
+                                                          U32* pLocationNameLength ) = 0;
       /* Description:
             Get the location of the virus.
    
@@ -1173,7 +1238,7 @@ public:
             ArraySize      The total size of the buffer supplied to receive the name, IN
                            CHARACTERS.
             pLocation      A pointer to the buffer which will receive the location text.
-                           NULL may be supplied if this value is not requered.
+                           NULL may be supplied if this value is not required.
             pLocationNameLength 
                            This location receives the total length of the IDE name 
                            INCLUDING TERMINATOR, in characters.
@@ -1181,25 +1246,26 @@ public:
          Return value:
             
             Success codes:
-            S_OK           The buffer suppled was big enough and the name was copied into it.
+            SOPHOS_S_OK    The buffer suppled was big enough and the name was copied into it.
                            
             Failure codes:
-            SOPHOS_SAVI2_ERROR_BUFFER_TOO_SMALL
+            SOPHOS_SAVI_ERROR_BUFFER_TOO_SMALL
                            The buffer supplied by the user was not big enough.
-            E_INVALIDARG   A pointer parameter did not point to a valid memory location.
-            E_UNEXPECTED   An unexpected error.
+            SOPHOS_E_INVALIDARG   
+                           A pointer parameter did not point to a valid memory location.
+            SOPHOS_E_UNEXPECTED   
+                           An unexpected error.
             Win32 platforms may also return other HRESULT values.
       */
 };
 
 class IEngineConfig : public SAVI_IUNKNOWN
-/*
-   This class represents a single sweep engine setting.
-*/
+/* This class represents a single sweep engine setting. */
 {
 public:
-   virtual HRESULT SOPHOS_STDCALL GetName(
-      U32 ArraySize, LPOLESTR pName, U32 *pNameLength) = 0;
+   virtual HRESULT SOPHOS_STDCALL GetName( U32 ArraySize, 
+                                           LPOLESTR pName, 
+                                           U32 *pNameLength ) = 0;
       /* Description:
             Get the name of the configuration parameter.
    
@@ -1207,23 +1273,25 @@ public:
             ArraySize      The total size of the buffer supplied to receive the name, IN
                            CHARACTERS.
             pName          A pointer to the buffer which will receive the name.
-                           NULL may be supplied if this value is not requered.
+                           NULL may be supplied if this value is not required.
             pNameLength    This location receives the total length of the IDE name 
                            INCLUDING TERMINATOR, in characters.
 
          Return value:
             
             Success codes:
-            S_OK           The buffer suppled was big enough and the name was copied into it.
+            SOPHOS_S_OK    The buffer suppled was big enough and the name was copied into it.
                            
             Failure codes:
-            SOPHOS_SAVI2_ERROR_BUFFER_TOO_SMALL
+            SOPHOS_SAVI_ERROR_BUFFER_TOO_SMALL
                            The buffer supplied by the user was not big enough.
-            E_INVALIDARG   A pointer parameter did not point to a valid memory location.
-            E_UNEXPECTED   An unexpected error.
+            SOPHOS_E_INVALIDARG
+                           A pointer parameter did not point to a valid memory location.
+            SOPHOS_E_UNEXPECTED
+                           An unexpected error.
             Win32 platforms may also return other HRESULT values.
       */
-   virtual HRESULT SOPHOS_STDCALL GetType(U32 *pType) = 0;
+   virtual HRESULT SOPHOS_STDCALL GetType( U32 *pType ) = 0;
       /* Description:
             Get the type of the configuration parameter.
    
@@ -1235,24 +1303,24 @@ public:
          Return value:
             
             Success codes:
-            S_OK           
+            SOPHOS_S_OK    Type obtained successfully.       
 
             Failure codes:
-            E_INVALIDARG   A pointer parameter did not point to a valid memory location.
-            E_UNEXPECTED   An unexpected error.
+            SOPHOS_E_INVALIDARG   
+                           The parameter did not point to a valid memory location.
+            SOPHOS_E_UNEXPECTED   
+                           An unexpected error.
             Win32 platforms may also return other HRESULT values.
       */
 };
 
 class ISweepError : public SAVI_IUNKNOWN
-/*
-   This class represents an error encountered during a sweep.
-*/
+/* This class represents an error encountered during a sweep. */
 {
 public:
-   virtual HRESULT SOPHOS_STDCALL GetLocationInformation(U32 ArraySize,
-                                                 LPOLESTR pLocation,
-                                                 U32* pLocationNameLength ) = 0;
+   virtual HRESULT SOPHOS_STDCALL GetLocationInformation( U32 ArraySize,
+                                                          LPOLESTR pLocation,
+                                                          U32* pLocationNameLength ) = 0;
       /* Description:
             Get the location of the virus.
    
@@ -1260,7 +1328,7 @@ public:
             ArraySize      The total size of the buffer supplied to receive the name, IN
                            CHARACTERS.
             pLocation      A pointer to the buffer which will receive the location text.
-                           NULL may be supplied if this value is not requered.
+                           NULL may be supplied if this value is not required.
             pLocationNameLength 
                            This location receives the total length of the IDE name 
                            INCLUDING TERMINATOR, in characters.
@@ -1268,52 +1336,53 @@ public:
          Return value:
             
             Success codes:
-            S_OK           The buffer suppled was big enough and the name was copied into it.
+            SOPHOS_S_OK    The buffer suppled was big enough and the name was copied into it.
                            
             Failure codes:
-            SOPHOS_SAVI2_ERROR_BUFFER_TOO_SMALL
+            SOPHOS_SAVI_ERROR_BUFFER_TOO_SMALL
                            The buffer supplied by the user was not big enough.
-            E_INVALIDARG   A pointer parameter did not point to a valid memory location.
-            E_UNEXPECTED   An unexpected error.
+            SOPHOS_E_INVALIDARG   
+                           A pointer parameter did not point to a valid memory location.
+            SOPHOS_E_UNEXPECTED  
+                           An unexpected error.
             Win32 platforms may also return other HRESULT values.
       */
 
-   virtual HRESULT SOPHOS_STDCALL GetErrorCode(HRESULT *ErrorCode) = 0;
+   virtual HRESULT SOPHOS_STDCALL GetErrorCode( HRESULT *ErrorCode ) = 0;
       /* Description:
             Get the type of error that occured.
    
          Parameters:
-            ErrorCode 
-                           This location receives the error code. At present the following
+            ErrorCode      This location receives the error code. At present the following
                            errors are possible:
-                              SOPHOS_SAVI2_ERROR_FILE_ENCRYPTED
+                              SOPHOS_SAVI_ERROR_FILE_ENCRYPTED
                                  The file was encrypted.
-                              SOPHOS_SAVI2_ERROR_CORRUPT
+                              SOPHOS_SAVI_ERROR_CORRUPT
                                  The file was corrupted.
-                              SOPHOS_SAVI2_ERROR_NOT_SUPPORTED
+                              SOPHOS_SAVI_ERROR_NOT_SUPPORTED
                                  The file format was not supported.
-                              SOPHOS_SAVI2_ERROR_COULD_NOT_OPEN
+                              SOPHOS_SAVI_ERROR_COULD_NOT_OPEN
                                  The file could not be opened.
                            NB in the future other codes may be added.
 
          Return value:
             Success codes:
-            S_OK           
+            SOPHOS_S_OK    Code obtained successfully.       
                            
             Failure codes:
-            E_INVALIDARG   A pointer parameter did not point to a valid memory location.
-            E_UNEXPECTED   An unexpected error.
+            SOPHOS_E_INVALIDARG   
+                           A pointer parameter did not point to a valid memory location.
+            SOPHOS_E_UNEXPECTED   
+                           An unexpected error.
             Win32 platforms may also return other HRESULT values.
       */
 };
 
 class ISweepNotify : public SAVI_IUNKNOWN
-/*
-   This class is implemented by a SAVI client wishing to set up a callback.
-*/
+/* This class is implemented by a SAVI client wishing to set up a callback. */
 {
 public:
-   virtual HRESULT SOPHOS_STDCALL OnFileFound(void *Token, LPCOLESTR Name) = 0;
+   virtual HRESULT SOPHOS_STDCALL OnFileFound( void *Token, LPCOLESTR Name ) = 0;
       /* Description:
             This function is invoked whenever a new file or sub-file is about to be swept.
             The return value indicates whether the file will be swept for viruses or not.
@@ -1323,15 +1392,17 @@ public:
             Name     The full name and path of the file which is about to be swept.
 
          Return value:
-            SOPHOS_SAVI2_CBCK_CONTINUE_THIS  
+            SOPHOS_SAVI_CBCK_CONTINUE_THIS  
                      Go ahead and sweep the current file or sub-file for viruses.
-            SOPHOS_SAVI2_CBCK_CONTINUE_NEXT
+            SOPHOS_SAVI_CBCK_CONTINUE_NEXT
                      Do not sweep the current file or sub-file, continue to the next one.
-            SOPHOS_SAVI2_CBCK_STOP
+            SOPHOS_SAVI_CBCK_STOP
                      Do not sweep the current file or any others.
       */
 
-   virtual HRESULT SOPHOS_STDCALL OnVirusFound(void *token, REFIID ResultsIID, void *pResults) = 0;
+   virtual HRESULT SOPHOS_STDCALL OnVirusFound( void *token, 
+                                                REFIID ResultsIID, 
+                                                void *pResults ) = 0;
       /* Description:
             This function is invoked whenever a virus is found within a file or sub-file.
             The return value indicates whether sweeping will proceed to the next file or not.
@@ -1351,16 +1422,18 @@ public:
                      also called.
 
          Return value:
-            SOPHOS_SAVI2_CBCK_CONTINUE_THIS  
+            SOPHOS_SAVI_CBCK_CONTINUE_THIS  
                      Continue to sweep within current file or sub-file for further viruses.
-            SOPHOS_SAVI2_CBCK_CONTINUE_NEXT
+            SOPHOS_SAVI_CBCK_CONTINUE_NEXT
                      Stop sweeping the current file, continue to the next one. This is the usual 
                      return code.
-            SOPHOS_SAVI2_CBCK_STOP
+            SOPHOS_SAVI_CBCK_STOP
                      Do no further sweeping.
       */
 
-   virtual HRESULT SOPHOS_STDCALL OnErrorFound(void *Token, REFIID ErrorIID, void *pError) = 0;
+   virtual HRESULT SOPHOS_STDCALL OnErrorFound( void *Token, 
+                                                REFIID ErrorIID, 
+                                                void *pError ) = 0;
       /* Description:
             This function is invoked whenever a problem is encountered sweeping a file for 
             viruses.
@@ -1380,27 +1453,89 @@ public:
                      also called.
 
          Return value:
-            SOPHOS_SAVI2_CBCK_CONTINUE_THIS  
+            SOPHOS_SAVI_CBCK_CONTINUE_THIS  
                      Attempt to ignore the error and continue to sweep within current file.
-            SOPHOS_SAVI2_CBCK_CONTINUE_NEXT
+            SOPHOS_SAVI_CBCK_CONTINUE_NEXT
                      Stop sweeping the current file, continue to the next one.
-            SOPHOS_SAVI2_CBCK_STOP
+            SOPHOS_SAVI_CBCK_STOP
                      Do no further sweeping.
       */
 };
 
+class ISweepNotify2 : public ISweepNotify
+/* This class is implemented by a SAVI client wishing to set up a callback.
+   It includes all of the functions of the ISweepNotify interface.
+*/
+{
+public:
+   virtual HRESULT SOPHOS_STDCALL OkToContinue( void *Token, 
+                                                U16 Activity, 
+                                                U32 Extent, 
+                                                LPCOLESTR pTarget ) = 0;
+      /* Description:
+            This function is invoked in order to give the SAVI client a chance to interrupt
+            scanning of the current object.  This can be most useful when scanning a file
+            which is using up large amounts of resources - whether processing time, memory / 
+            disc space or whatever.
+            The return value indicates whether SAVI should carry on processing this file, 
+            process the next file (in an archive) or halt.
+   
+         Parameters:
+            Token    The user value supplied to RegisterNotification in the SAVI interface.
+            activity A code which indicates why SAVI has invoked the callback function.  
+                     This will be one of :
+                     SAVI_ACTVTY_CLASSIF - SAVI is matching file contents against virus patterns
+                     SAVI_ACTVTY_NEXTFILE - SAVI has found another sub-file in the file being scanned
+                     SAVI_ACTVTY_DECOMPR - SAVI is expanding a compressed file or sub-file
+            extent   A number which indicates how much of the activity has taken place
+            pTarget  The name of the file or sub-file currently being processed
+
+         Return value:
+            SOPHOS_SAVI_CBCK_CONTINUE_THIS  
+                     Carry on sweeping the current file or sub-file for viruses.
+            SOPHOS_SAVI_CBCK_CONTINUE_NEXT
+                     Stop sweeping the current file or sub-file, continue to the next one.
+            SOPHOS_SAVI_CBCK_STOP
+                     Stop sweeping the current file or any others.
+      */
+
+   virtual HRESULT SOPHOS_STDCALL OnClassification( void *Token, U32 Classifn ) = 0;
+      /* Description:
+            This function is invoked whenever a file or sub-file has been identified as
+            one of the file types recognised by SAVI.
+            The return value indicates whether sweeping will proceed to the next file or not.
+
+         Parameters:
+            Token    The user value supplied to RegisterNotification in the SAVI interface.
+            Classifn A numeric value indicating the file classification type (see savitype.h)
+
+         Return value:
+            SOPHOS_SAVI_CBCK_CONTINUE_THIS  
+                     Continue to sweep within current file or sub-file for further viruses.
+            SOPHOS_SAVI_CBCK_CONTINUE_NEXT
+                     Stop sweeping the current file, continue to the next one. This is the usual 
+                     return code.
+            SOPHOS_SAVI_CBCK_STOP
+                     Do no further sweeping.
+      */
+
+};
+
+
 class ISweepDiskChange : public SAVI_IUNKNOWN
-/*
-   This class is implemented by a SAVI client wishing to 
+/* This class is implemented by a SAVI client wishing to 
    be notified of disk changes during VDL loading
 */
 {
 public:
-  virtual HRESULT SOPHOS_STDCALL OnDiskChange(void *Token, LPCOLESTR pFileName, U32 partNumber, U32 timesRound) = 0;
+  virtual HRESULT SOPHOS_STDCALL OnDiskChange( void *Token, 
+                                               LPCOLESTR pFileName, 
+                                               U32 partNumber, 
+                                               U32 timesRound ) = 0;
       /* Description:
             This function is invoked whenever a new section of VDL is required, usually this
             is caused by the data being spread across more than one disk, but may be caused
-            by the data being spread across more that one file in the same directory. The 
+            by the data being spread across more than one file in the same directory. The 
             client should check that the requested file is not actually present before 
             prompting the user.
             The return value indicates whether the client has found the next section 

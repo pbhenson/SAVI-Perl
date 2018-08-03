@@ -1,9 +1,9 @@
 #
-# SAVI-Perl version 0.15
+# SAVI-Perl version 0.20
 #
 # Paul Henson <henson@acm.org>
 #
-# Copyright (c) 2002,2003 Paul Henson -- see COPYRIGHT file for details
+# Copyright (c) 2002-2004 Paul Henson -- see COPYRIGHT file for details
 #
 
 package SAVI;
@@ -20,24 +20,7 @@ require AutoLoader;
 
 @EXPORT = qw();
 
-$VERSION = '0.15';
-
-sub AUTOLOAD {
-    my $constname;
-    ($constname = $AUTOLOAD) =~ s/.*:://;
-    my $val = constant($constname, @_ ? $_[0] : 0);
-    if ($! != 0) {
-        if ($! =~ /Invalid/) {
-            $AutoLoader::AUTOLOAD = $AUTOLOAD;
-            goto &AutoLoader::AUTOLOAD;
-        }
-        else {
-                croak "Your vendor has not defined SAVI macro $constname";
-        }
-    }
-    eval "sub $AUTOLOAD { $val }";
-    goto &$AUTOLOAD;
-}
+$VERSION = '0.20';
 
 bootstrap SAVI $VERSION;
 
@@ -80,7 +63,88 @@ my %error_strings = (
     0x223 => "SAVI must be reinitialised - the virus engine has a version higher than the running version of SAVI supports",
     0x224 => "Cannot set option value - the virus engine will not permit its value to be changed, as this option is immutable",
     0x225 => "The file passed for scanning represented part of a multi volume archive - the file cannot be scanned",
+    0x226 => "Returned from a callback function to request default processing",
+    0x227 => "GetConfigValue() called for a grouped engine setting",
+    0x228 => "Operation failed due to incompatible pending / ongoing activity on Virus data",
+    0x229 => "ISaviStream implementation: ReadStream failed",
+    0x22A => "ISaviStream implementation: WriteStream failed",
+    0x22B => "ISaviStream implementation: SeekStream failed",
+    0x22C => "ISaviStream implementation: GetLength failed",
+    0x22D => "One of the files in a split-virus data set could not be located",
+    0x22E => "One of the files in a split-virus data set could not be located",
+    0x22F => "One of the files in a split-virus data set has the wrong checksum",
+    0x230 => "One of the files in a split-virus data set has the wrong checksum",
+    0x231 => "Scan aborted by SAVI AutoStop",
 );
+
+sub new {
+    my ($class) = @_;
+
+    my $self = {};
+
+    $self->{savi_h} = new SAVI::handle;
+
+    ref $self or return $self;
+
+    $self->{options} = { $self->{savi_h}->options() };
+
+    bless($self, "SAVI");
+    return $self;
+}
+
+sub SAVI::options {
+    my ($self) = @_;
+
+    return (sort(keys (%{$self->{options}})));
+}
+
+sub SAVI::load_data {
+    my ($self, $vdl_dir, $ide_dir) = @_;
+
+    if ($vdl_dir) {
+	my $error;
+
+	$error = $self->set("VirusDataDir", $vdl_dir) and return $error;
+	$error = $self->set("IdeDir", $ide_dir || $vdl_dir) and return $error;
+    }
+	
+
+    return $self->{savi_h}->load_data();
+}
+
+sub SAVI::version {
+    my ($self) = @_;
+
+    return $self->{savi_h}->version();
+}
+
+sub SAVI::set {
+    my ($self, $param, $value) = @_;
+
+    my $type = $self->{options}{$param} || $self->{savi_h}->type_u32();
+
+    return $self->{savi_h}->set($param, $value, $type);
+}
+
+sub SAVI::get {
+    my ($self, $param) = @_;
+
+    my $type = $self->{options}{$param} || $self->{savi_h}->type_u32();
+
+    return $self->{savi_h}->get($param, $type);
+}
+
+sub SAVI::scan {
+    my ($self, $path) = @_;
+
+    return $self->{savi_h}->scan($path);
+}
+
+sub SAVI::scan_fh {
+    my ($self, $fh) = @_;
+
+    return $self->{savi_h}->scan_fh($fh);
+}
 
 sub SAVI::error_string {
     my ($class, $code) = @_;
@@ -115,6 +179,21 @@ to an object of type SAVI on success or a numeric error code on failure.
 
 =over 4
 
+=item $error = $savi->load_data(vdl_dir, ide_dir);
+
+Explicitly loads or reloads virus data. Virus data is automatically loaded
+the first time it is needed, or can be explicitly loaded with this function.
+This function can also be used to refresh virus data within an existing
+SAVI object. The optional parameters define where the main virus data and the
+ancillary ide files can be found. If neither are supplied, the default
+environment variable SAV_IDE is used. If the second parameter is not supplied
+the value of the first will be used for both. Returns undef on success or a
+numeric error code on failure.
+
+=back
+
+=over 4
+
 =item $version = $savi->version();
 
 Returns a reference to an object of type SAVI::version on success,
@@ -125,10 +204,27 @@ or undef upon failure to allocate memory.
 
 =over 4
 
-=item $error = $savi->set(param, value, type = 0);
+=item @options = $savi->options();
 
-Sets the given parameter to the given value. The default type is
-U32, calling with type not equal to 0 will use U16. Returns
+Returns an array listing valid options for the in-use version of the SAVI
+engine.
+
+=back
+
+=over 4
+
+=item $error = $savi->set(param, value);
+
+Sets the given parameter to the given value. Returns
+undef on success and a numeric error code on failure.
+
+=back
+
+=over 4
+
+=item ($value, $error) = $savi->get(param);
+
+Returns the current value of the given parameter. $error is
 undef on success and a numeric error code on failure.
 
 =back
@@ -139,6 +235,15 @@ undef on success and a numeric error code on failure.
 
 Initiates a scan on the given file. Returns a reference to an object of type
 SAVI::results on success, or a numeric error code on failure.
+
+=back
+
+=over 4
+
+=item $results = $savi->scan_fh(FH);
+
+Initiates a scan on the given file handle. Returns a reference to an object
+of type SAVI::results on success, or a numeric error code on failure.
 
 =back
 
@@ -233,7 +338,7 @@ Returns a list of the viruses discovered by the scan.
 
 =head1 AUTHOR
 
-Paul Henson <henson@acm.org>
+Paul B. Henson <henson@acm.org>
 
 =head1 SEE ALSO
 

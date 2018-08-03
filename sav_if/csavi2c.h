@@ -3,12 +3,13 @@
  *
  * This file is a part of the Sophos Anti-Virus Interface (SAVI)(tm).
  *
- * Copyright (C) 1997,2000 Sophos Plc, Oxford, England.
+ * Copyright (C) 2002 Sophos Plc, Oxford, England.
  * All rights reserved.
  *
  * This source code is only intended as a supplement to the
  * SAVI(tm) Reference and related documentation for the library.
  *
+ * Sophos CISavi2 declarations.
  */
 
 #ifndef __CSAVI2C_DOT_H__
@@ -16,8 +17,6 @@
 
 /* ----- */
 
-#include "sophtype.h"
-#include "savichar.h"
 #include "savitype.h"
 #include "swerror2.h"
 #include "swiid.h"
@@ -51,28 +50,31 @@ typedef struct _CISweepClassFactory2
   CISweepClassFactory2Vtbl *pVtbl;
 } CISweepClassFactory2;
 
+#define CISAVI2VTBL \
+  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR Initialise)(void *object); \
+  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR InitialiseWithMoniker)(void *object, LPCOLESTR pApplicationMoniker); \
+  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR RegisterNotification)(void *object, REFIID NotifyIID, void *pCallbackInterface, void *pToken); \
+  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR GetVirusEngineVersion)(void *object, U32 *pVersion, LPOLESTR pVersionString, U32 StringLength, SYSTEMTIME *pVdataDate, U32 *pNumberOfDetectableViruses, U32 *pVersionEx, REFIID DetailsIID, void **ppDetailsList); \
+  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR Terminate)(void *object); \
+  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR SetConfigDefaults)(void *object); \
+  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR ReadConfig)(void *object); \
+  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR WriteConfig)(void *object); \
+  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR GetConfigEnumerator)(void *object, REFIID ConfigIID, void **ppConfigs); \
+  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR SetConfigValue)(void *object, LPCOLESTR pValueName, U32 Type, LPCOLESTR pData); \
+  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR GetConfigValue)(void *object, LPCOLESTR pValueName, U32 Type, U32 MaxSize, LPOLESTR pData, U32 *pSize); \
+  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR SweepFile)(void *object, LPCOLESTR pFileName, REFIID ResultsIID, void **ppResults); \
+  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR DisinfectFile)(void *object, LPCOLESTR pFileName, REFIID ResultsIID, void **ppResults); \
+  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR SweepLogicalSector)(void *object, LPCOLESTR pDriveName, U32 Reserved, U32 SectorNumber, REFIID ResultsIID, void **ppResults); \
+  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR SweepPhysicalSector)(void *object, LPCOLESTR pDriveName, U32 Head, U32 Cylinder, U32 Sector, REFIID ResultsIID, void **ppResults); \
+  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR DisinfectLogicalSector)(void *object, LPCOLESTR pDriveName, U32 Reserved, U32 SectorNumber, REFIID ResultsIID, void **ppResults); \
+  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR DisinfectPhysicalSector)(void *object, LPCOLESTR pDriveName, U32 Head, U32 Cylinder, U32 Sector, REFIID ResultsIID, void **ppResults); \
+  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR SweepMemory)(void *object, REFIID ResultsIID, void **ppResults); \
+  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR Disinfect)(void *object, REFIID ToDisinfectIID, void *pToDisinfect)
+
 typedef struct _CISavi2Vtbl
 {
   CISWEEPUNKNOWN2VTBL;
-  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR Initialise)(void *object);
-  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR InitialiseWithMoniker)(void *object, LPCOLESTR pApplicationMoniker);
-  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR RegisterNotification)(void *object, REFIID NotifyIID, void *pCallbackInterface, void *pToken);
-  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR GetVirusEngineVersion)(void *object, U32 *pVersion, LPOLESTR pVersionString, U32 StringLength, SYSTEMTIME *pSweepDate, U32 *pNumberOfDetectableViruses, U32 *pReserved, REFIID DetailsIID, void **ppIDEList);
-  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR Terminate)(void *object);
-  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR SetConfigDefaults)(void *object);
-  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR ReadConfig)(void *object);
-  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR WriteConfig)(void *object);
-  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR GetConfigEnumerator)(void *object, REFIID ConfigIID, void **ppConfigs);
-  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR SetConfigValue)(void *object, LPCOLESTR pValueName, U32 Type, LPCOLESTR pData);
-  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR GetConfigValue)(void *object, LPCOLESTR pValueName, U32 Type, U32 MaxSize, LPOLESTR pData, U32 *pSize);
-  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR SweepFile)(void *object, LPCOLESTR pFileName, REFIID ResultsIID, void **ppResults);
-  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR DisinfectFile)(void *object, LPCOLESTR pFileName, REFIID ResultsIID, void **ppResults);
-  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR SweepLogicalSector)(void *object, LPCOLESTR pDriveName, U32 Reserved, U32 SectorNumber, REFIID ResultsIID, void **ppResults);
-  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR SweepPhysicalSector)(void *object, LPCOLESTR pDriveName, U32 Head, U32 Cylinder, U32 Sector, REFIID ResultsIID, void **ppResults);
-  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR DisinfectLogicalSector)(void *object, LPCOLESTR pDriveName, U32 Reserved, U32 SectorNumber, REFIID ResultsIID, void **ppResults);
-  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR DisinfectPhysicalSector)(void *object, LPCOLESTR pDriveName, U32 Head, U32 Cylinder, U32 Sector, REFIID ResultsIID, void **ppResults);
-  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR SweepMemory)(void *object, REFIID ResultsIID, void **ppResults);
-  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR Disinfect)(void *object, REFIID ToDisinfectIID, void *pToDisinfect);
+  CISAVI2VTBL;
 } CISavi2Vtbl;
 
 typedef struct _CISavi2
@@ -147,6 +149,23 @@ typedef struct _CISweepNotify
   U32                refCount;
 } CISweepNotify;
 
+typedef struct _CISweepNotify2Vtbl
+{
+  CISWEEPUNKNOWN2VTBL;
+  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR OnFileFound)(void *object, void *token, LPCOLESTR pName);
+  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR OnVirusFound)(void *object, void *token, REFIID ResultsIID, void *pResults);
+  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR OnErrorFound)(void *object, void *token, REFIID ErrorIID, void *pError);
+  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR OkToContinue)(void *object, void *token, U16 Activity, U32 Extent, LPCOLESTR pTarget);
+  HRESULT (SOPHOS_STDCALL_PUBLIC_PTR OnClassification)(void *object, void *token, U32 Classifn);
+} CISweepNotify2Vtbl;
+
+typedef struct _CISweepNotify2
+{
+  CISweepNotify2Vtbl *pVtbl;
+  IID                typeCode;
+  U32                refCount;
+} CISweepNotify2;
+
 typedef struct _CISweepDiskChangeVtbl
 {
   CISWEEPUNKNOWN2VTBL;
@@ -202,7 +221,7 @@ typedef struct _CIEnumEngineConfig
   CIEnumEngineConfigVtbl *pVtbl;
 } CIEnumEngineConfig;
 
-#ifndef __SOPHOS_WIN32__
+#if !defined( __SOPHOS_WIN32__ ) && !defined( __SOPHOS_NW__ )
 #ifdef __cplusplus
 extern "C"
 {

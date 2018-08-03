@@ -31,9 +31,20 @@
  *   __SOPHOS_ALPHA__          Alpha AXP
  *   __SOPHOS_SPARC__          Sun SPARC
  *   __SOPHOS_POWERPC__        IBM PowerPC/RS6000/PowerMac
- *   __SOPHOS_68000__          Macintosh 68000 (PowerMac can emulate this)
+ *   __SOPHOS_68000__          Macintosh 68000 (PowerMac can emulate this) (Metrowerks and GCC)
  *   __SOPHOS_HP_PA__          HP Precision Architecture
  *
+ * Executable format:
+ *  __SOPHOS_EF_MACHO__        Apple OSX macho Executable Format (Metrowerks or GNUC/ProjectBuilder)
+ *  __SOPHOS_EF_CFM__          Apple CFM Executable Format. (Metrowerks or GNUC/ProjectBuilder)
+ *
+ * API set:
+ *  __SOPHOS_API_CARBON__      Apple Carbon API calls (Metrowerks or GNUC/ProjectBuilder)
+ *  __SOPHOS_API_COCOA__       Apple Cocoa API calls, including carbon (Metrowerks or GNUC/Project Builder)
+ *  __SOPHOS_API_APPLE_OS8__   Apple pre Carbon classic API calls.  (Metrowerks only)
+ *  __SOPHOS_API_OSX_UNIX__    Apple OSX std unix calls. (Metrowerks or GNUC/ProjectBuilder)
+ *                             macho target only.
+ *  
  * Operating system:
  *   __SOPHOS_DOS__            DOS
  *   __SOPHOS_DOS32__          Extended DOS
@@ -51,7 +62,10 @@
  *   __SOPHOS_FREEBSD__        FreeBSD
  *   __SOPHOS_AIX__            IBM AIX
  *   __SOPHOS_BANYAN_VINES__   Banyan VINES Server
- *   __SOPHOS_MACOS__          Macintosh OS 7.5+
+ *   __SOPHOS_MACOS__          Macintosh OS All variants
+ *   __SOPHOS_OSX__            Macintosh OS MachO OSX std unix API.
+ *   __SOPHOS_CFM_CARBON__     Macintosh CFM Carbon application that will run on OS9 and OSX
+ *   __SOPHOS_MAC_CLASSIC__    Macintosh Classic 7.5 to 9.1
  *   __SOPHOS_VMS__            VMS
  *
  * Special features:
@@ -81,10 +95,14 @@
  *
  *   SOPHOS_INLINEC            Inline C function declaration
  *                            (controlled by __SOPHOS_INLINE__)
+ 
+ *   SOPHOS_INL_KW            the inline keyword for the current platform
  *
  *   SOPHOS_CVTBL_METHOD       C++ calling convention for mirroring
  *                             virtual tables declared in C.
  *                            (automatically controlled by target platform)
+ *
+ *   SOPHOS_STDCALL            Keyword for standard C calling convention.
  *
  */
 
@@ -100,11 +118,14 @@
  */
 #undef SOPHOS_EXPORT
 #undef SOPHOS_EXPORTC
+#undef SOPHOS_IMPORT
 #undef SOPHOS_PUBLIC
 #undef SOPHOS_PUBLIC_PTR
 #undef SOPHOS_FAR
 #undef SOPHOS_INLINEC
+#undef SOPHOS_INL_KW
 #undef SOPHOS_CVTBL_METHOD
+#undef SOPHOS_STDCALL
 #undef __SOPHOS_I86__
 #undef __SOPHOS_I386__
 #undef __SOPHOS_ALPHA__
@@ -112,6 +133,12 @@
 #undef __SOPHOS_POWERPC__
 #undef __SOPHOS_68000__
 #undef __SOPHOS_HP_PA__
+#undef __SOPHOS_EF_MACHO__
+#undef __SOPHOS_EF_CFM__
+#undef __SOPHOS_API_CARBON__
+#undef __SOPHOS_API_APPLE_OS8__
+#undef __SOPHOS_API_COCOA__
+#undef __SOPHOS_API_OSX_UNIX__
 #undef __SOPHOS_DOS__
 #undef __SOPHOS_DOS32__
 #undef __SOPHOS_DOS4GW__
@@ -127,6 +154,9 @@
 #undef __SOPHOS_HP_UX__
 #undef __SOPHOS_FREEBSD__
 #undef __SOPHOS_MACOS__
+#undef __SOPHOS_OSX__
+#undef __SOPHOS_CFM_CARBON__
+#undef __SOPHOS_MAC_CLASSIC__
 #undef __SOPHOS_VMS__
 #undef __SOPHOS_WC__
 #undef __SOPHOS_MS__
@@ -153,7 +183,7 @@
  * Export keywords for Watcom
  */
 
-# if defined(__SW_BD) || defined(__SOPHOS_EXPORT__)
+# if defined(__SW_BD) || defined(__SOPHOS_EXPORT__) || defined(SOPHOS_DLL)
    /* it's a DLL or __SOPHOS_EXPORT__ is defined */
 #  if defined(__WINDOWS__)
 #   define SOPHOS_EXPORT        __export __cdecl
@@ -169,7 +199,7 @@
 #  elif defined(__OS2__)
 #   if defined(__386__)
      /* 32-bit OS2 */
-#    define SOPHOS_EXPORT      __export
+#    define SOPHOS_EXPORT     /*  __export  */
 #    define SOPHOS_EXPORTC     __export __syscall
 #    define SOPHOS_PUBLIC      __syscall
 #    define SOPHOS_PUBLIC_PTR  __syscall * 
@@ -220,11 +250,17 @@
 #  endif
 # endif /* defined(__SW_BD) || defined(__SOPHOS_EXPORT__) */
 
+#define SOPHOS_IMPORT   /* Watcom has no specific import keyword. */ 
+#if !defined(__NETWARE_386__)
+#define SOPHOS_STDCALL 
+#endif
+
 /*
  * Inline keyword for Watcom
  */
+# define SOPHOS_INL_KW  __inline
 # if defined(__SOPHOS_INLINE__)
-#  define SOPHOS_INLINEC  __inline
+#  define SOPHOS_INLINEC  SOPHOS_INL_KW
 # else  /* defined(__SOPHOS_INLINE__) */
 #  define SOPHOS_INLINEC
 # endif /* defined(__SOPHOS_INLINE__) */
@@ -256,6 +292,7 @@
 #  define __SOPHOS_OS2__
    /* OS2 !! */
 # elif defined(__NETWARE_386__) /* Netware 386 */
+#  define SOPHOS_STDCALL  __stdcall
 #  define __SOPHOS_NW__
 #  define __SOPHOS_YIELD__
    /* Netware */
@@ -287,21 +324,25 @@
  * Export keyword for Micros~1
  */
 
-# if defined(_WINDLL) || defined(__SOPHOS_EXPORT__)
-#  if defined(_M_IX86)
-#   define SOPHOS_EXPORT  __declspec( dllexport )           /* The Visual C++ 2.0 Compiler obsoletes the __export */
-#   define SOPHOS_EXPORTC __declspec( dllexport ) __stdcall /* keyword for the dllexport storage class modifier   */
-#   define SOPHOS_FAR
-#  else
-#   define SOPHOS_EXPORT  __export
-#   define SOPHOS_EXPORTC __export __far __pascal
-#   define SOPHOS_FAR     __far
-#  endif
+# if defined(_WINDLL) || defined(_USRDLL) || defined(SOPHOS_DLL) || defined(__SOPHOS_EXPORT__)
+#  define SOPHOS_EXPORT  __declspec( dllexport )           /* The Visual C++ 2.0 Compiler obsoletes the __export */
+#  define SOPHOS_EXPORTC __declspec( dllexport ) __stdcall /* keyword for the dllexport storage class modifier   */
+#  define SOPHOS_FAR
 # else
-#  define SOPHOS_EXPORT
+#  define SOPHOS_EXPORT 
 #  define SOPHOS_EXPORTC
 #  define SOPHOS_FAR
 # endif
+
+/* SOPHOS_IMPORT is used in SOPHOS_DYNAMIC builds.
+ */
+#if defined(__SOPHOS_DYNAMIC__)
+#   define SOPHOS_IMPORT __declspec(dllimport)
+#else
+#   define SOPHOS_IMPORT 
+#endif 
+
+#define SOPHOS_STDCALL __stdcall
 
 #define SOPHOS_PUBLIC
 #define SOPHOS_PUBLIC_PTR *
@@ -311,8 +352,9 @@
 /*
  * Inline keyword.
  */
+# define SOPHOS_INL_KW  __inline
 # if defined(__SOPHOS_INLINE__)
-#  define SOPHOS_INLINEC  __inline
+#  define SOPHOS_INLINEC  SOPHOS_INL_KW
 # else  /* defined(__SOPHOS_INLINE__) */
 #  define SOPHOS_INLINEC
 # endif /* defined(__SOPHOS_INLINE__) */
@@ -320,6 +362,11 @@
 /*
  * Operating system
  */
+
+#if defined(WIN32) && !defined(_WIN32)
+  #define _WIN32
+#endif
+
 # if defined(_WIN32)              /* Win32 (95/98/NT) */
 #  define __SOPHOS_WIN32__
 # elif defined(_WINDOWS)          /* Windows 3.x */
@@ -361,7 +408,7 @@
  * Export keyword for Borland (not really used)
  */
 
-# if defined(__DLL__) || defined(__SOPHOS_EXPORT__)
+# if defined(__DLL__) || defined(__SOPHOS_EXPORT__) || defined(SOPHOS_DLL)
 #  if defined(__OS2__)
 #   define SOPHOS_EXPORT      __export
 #   define SOPHOS_EXPORTC     __export __far16 __pascal
@@ -395,12 +442,20 @@
 #  define SOPHOS_PUBLIC_PTR  *
 # endif
 
+#if defined(__SOPHOS_DYNAMIC__)
+#   define SOPHOS_IMPORT __import   /* ?? */
+#else
+#   define SOPHOS_IMPORT 
+#endif 
+
+#define SOPHOS_STDCALL 
+
 /*
  * Inline keyword.
  */
-
+# define SOPHOS_INL_KW  inline
 # if defined(__SOPHOS_INLINE__)
-#  define SOPHOS_INLINEC inline
+#  define SOPHOS_INLINEC  SOPHOS_INL_KW
 # else
 #  define SOPHOS_INLINEC
 # endif
@@ -453,6 +508,8 @@
 #define SOPHOS_PUBLIC_PTR *
 #define SOPHOS_EXPORT
 #define SOPHOS_EXPORTC
+#define SOPHOS_IMPORT 
+#define SOPHOS_STDCALL
 
 /*
  * Far keyword.
@@ -462,8 +519,9 @@
 /*
  * Inline keyword.
  */
+# define SOPHOS_INL_KW
 # if defined(__SOPHOS_INLINE__)
-#  define SOPHOS_INLINEC
+#  define SOPHOS_INLINEC  SOPHOS_INL_KW 
 # else
 #  define SOPHOS_INLINEC
 # endif
@@ -507,6 +565,8 @@
 #define SOPHOS_PUBLIC_PTR *
 #define SOPHOS_EXPORT
 #define SOPHOS_EXPORTC
+#define SOPHOS_IMPORT 
+#define SOPHOS_STDCALL
 
 /*
  * Far keyword.
@@ -517,9 +577,9 @@
 /*
  * Inline keyword.
  */
-
+# define SOPHOS_INL_KW  __inline__
 # if defined(__SOPHOS_INLINE__)
-#  define SOPHOS_INLINEC  __inline__
+#  define SOPHOS_INLINEC  SOPHOS_INL_KW
 # else
 #  define SOPHOS_INLINEC
 # endif
@@ -541,12 +601,36 @@
 #  define __SOPHOS_AIX__
 # elif defined(__FreeBSD__)
 #  define __SOPHOS_FREEBSD__
+# elif defined(__APPLE__)
+#  define __SOPHOS_MACOS__
+#  ifdef __MACOS_CLASSIC__
+#   define __SOPHOS_EF_CFM__
+#   if TARGET_API_MAC_CARBON || defined(__CARBON__) || defined(CARBON)
+#    define __SOPHOS_API_CARBON__
+#    define __SOPHOS_CFM_CARBON__
+#   else
+#    define __SOPHOS_API_APPLE_OS8__
+#    define __SOPHOS_MAC_CLASSIC__
+#   endif /* #   if TARGET_AP_MAC_CARBON */
+#  else
+#   define __SOPHOS_EF_MACHO__
+#   define __SOPHOS_OSX__
+#   if TARGET_API_MAC_CARBON || defined(__CARBON__) || defined(CARBON)
+#    define __SOPHOS_API_CARBON__
+#   else  /* Would add an elif defined(COCOA) here if we were to add a cocoa target. */
+#    define __SOPHOS_API_OSX_UNIX__
+#   endif /* #   if TARGET_AP_MAC_CARBON */
+#  endif
 # elif (defined(_SCO_DS) && defined(_SCO_ELF) && defined(_SCO_XPG_VERS) && defined(_SCO_C_DIALECT))
 #  define __SOPHOS_SCO_OPENSERVER__
+# elif defined(__unix__)
+#  define __SOPHOS_DEC_UNIX__
 # elif defined(__SOPHOS_BANYAN_VINES__)
 /* Intentionally empty section! */
 # elif defined(__OS2__)
 #  define __SOPHOS_OS2__
+# elif defined(__VMS__)
+#  define __SOPHOS_VMS__
 # else
 #  error Unsupported GNU C target operating system
 # endif
@@ -562,10 +646,16 @@
 #  define __SOPHOS_HP_PA__
 # elif defined(__sparc__)
 #  define __SOPHOS_SPARC__
-# elif defined(_POWER)
+# elif (defined(_POWER) || defined(__ppc__) || defined(__POWERPC__) || defined(__PPC__))
 #  define __SOPHOS_POWERPC__
+# elif (defined(TARGET_CPU_68K) || defined(__CFM68K__) || defined(m68k) || defined(_M_M68K))
+#  define __SOPHOS_68000__
 # elif defined(__alpha__)
 #  define __SOPHOS_ALPHA__
+# elif defined (__s390__)
+#  define __SOPHOS_S390__
+# elif defined(__VAX)
+#  define __SOPHOS_VAX__
 # else
 #  error Unsupported GNU C/C++ target hardware platform
 # endif
@@ -587,12 +677,14 @@
 # define SOPHOS_PUBLIC
 # define SOPHOS_PUBLIC_PTR *
 # define SOPHOS_FAR
+# define SOPHOS_IMPORT 
 
 /*
  * Inline keyword.
  */
+# define SOPHOS_INL_KW  inline
 #if defined(__SOPHOS_INLINE__)
-# define SOPHOS_INLINEC  inline
+# define SOPHOS_INLINEC  SOPHOS_INL_KW
 #else  /* defined(__SOPHOS_INLINE__) */
 # define SOPHOS_INLINEC
 #endif /* defined(__SOPHOS_INLINE__) */
@@ -600,8 +692,34 @@
 /*
  * Operating system.
  */
-# if macintosh
+# if defined(__MACH__)
+#  define SOPHOS_STDCALL
 #  define __SOPHOS_MACOS__
+#  define __SOPHOS_EF_MACHO__
+#  define __SOPHOS_OSX__
+#  define __SOPHOS_API_OSX_UNIX__
+#  if TARGET_API_MAC_CARBON || defined(CARBON) || defined(__CARBON__)
+#   define __SOPHOS_API_CARBON__
+#  endif
+# elif macintosh
+#  define SOPHOS_STDCALL
+#  define __SOPHOS_MACOS__
+#  define __SOPHOS_EF_CFM__
+/*  __CARBON__ is set in file <Carbon/Carbon.h>, which should be included if CARBON is defined */
+#  if TARGET_API_MAC_CARBON || defined(CARBON) || defined(__CARBON__)
+#   define __SOPHOS_API_CARBON__
+#   define __SOPHOS_CFM_CARBON__
+#  else
+#   define __SOPHOS_API_APPLE_OS8__
+#   define __SOPHOS_MAC_CLASSIC__
+#  endif /* #ifdef __CARBON__ */
+# elif defined (N_PLAT_NLM) /* Netware 386 */
+#  define SOPHOS_STDCALL  __stdcall
+#  define __SOPHOS_NW__
+#  define __SOPHOS_YIELD__
+# elif defined (_WIN32)
+#  define SOPHOS_STDCALL  __stdcall
+#  define __SOPHOS_WIN32__
 # else
 #  error Unsupported Metrowerks target OS
 # endif
@@ -611,30 +729,33 @@
  */
 # if __POWERPC__
 #  define __SOPHOS_POWERPC__
-# elif __MC68K__
+# elif __MC68K__ || defined(__CFM68K__)
 #  define __SOPHOS_68000__
+# elif defined(_M_I386)                                              /* Intel x86 32-bit */
+#  define __SOPHOS_I386__
 # else
 #  error Unsupported Metrowerks target hardware platform.
 # endif
 
 /* ----- */
 
-#elif defined(__IBMC__)
+#elif defined(__IBMC__) || defined(__IBMCPP__)
+
 # define __SOPHOS_IBMC__
 
 /*
  * Export keywords - IBMC
  */
 
-# if defined(__DLL__) || defined(__SOPHOS_EXPORT__)
+# if defined(__DLL__) || defined(__SOPHOS_EXPORT__) || defined(SOPHOS_DLL)
    /* it's a DLL or __SOPHOS_EXPORT__ is defined */
 #  if defined(__OS2__)
 #   if defined(_M_I386)
-#     define SOPHOS_EXPORT       _Export
-#     define SOPHOS_EXPORTC      _Export _System
+#     define SOPHOS_EXPORT 
+#     define SOPHOS_EXPORTC      _System
+#     define SOPHOS_FAR
 #     define SOPHOS_PUBLIC       _System
 #     define SOPHOS_PUBLIC_PTR * _System
-#     define SOPHOS_FAR
 #   else
 #     error Unsupported IBM C/C++ target (probably 16-bit)
 #   endif
@@ -650,13 +771,20 @@
 #  define SOPHOS_PUBLIC_PTR  * _System
 # endif
 
+#define SOPHOS_STDCALL
+
+#if defined(__SOPHOS_DYNAMIC__)
+#   define SOPHOS_IMPORT 
+#else
+#   define SOPHOS_IMPORT 
+#endif 
 
 /*
  * Inline keyword - IBMC
  */
-
+# define SOPHOS_INL_KW
 #if defined(__SOPHOS_INLINE__)
-# define SOPHOS_INLINEC
+# define SOPHOS_INLINEC  SOPHOS_INL_KW
 #else  /* defined(__SOPHOS_INLINE__) */
 # define SOPHOS_INLINEC
 #endif /* defined(__SOPHOS_INLINE__) */
@@ -678,6 +806,8 @@
 #  define __SOPHOS_WIN32__
 # elif defined(__OS2__)         /* OS/2 2.x and 3.x */
 #  define __SOPHOS_OS2__
+# elif defined(_AIX)
+#  define __SOPHOS_AIX__
 # else                          /* Unsupported operating system */
 #  error Unsupported IBM C/C++ target operating system
 # endif
@@ -691,6 +821,8 @@
 #  define __SOPHOS_I86__
 # elif defined(_M_I386)                                              /* Intel x86 32-bit */
 #  define __SOPHOS_I386__
+# elif (defined(_POWER) || defined(__ppc__) || defined(__POWERPC__) || defined(__PPC__))
+#  define __SOPHOS_POWERPC__
 # else                                                              /* Unsupported hardware platform */
 #  error Unsupported IBM C/C++ target hardware platform
 # endif
@@ -714,18 +846,26 @@
 #if (defined(__SOPHOS_VMS__))
 # undef  __SOPHOS_BIG_ENDIAN__
 # define __SOPHOS_LITTLE_ENDIAN__
-#else
-# if ((defined(__SOPHOS_SPARC__)   && defined(__SOPHOS_SOL2__))  || \
-     (defined(__SOPHOS_HP_UX__)   && defined(__SOPHOS_HP_PA__)) || \
-     (defined(__SOPHOS_POWERPC__) && defined(__SOPHOS_AIX__))   || \
-     (defined(__SOPHOS_POWERPC__) && defined(__SOPHOS_MACOS__)) || \
-     (defined(__SOPHOS_68000__)   && defined(__SOPHOS_MACOS__)) )
+ /* This comment is supposed to make someone think about the reason (the real,
+  * technical reason, not "just in case" or "it's always been like this" or "it
+  * works, doesn't it?") for doing the following, and come to the conclusion
+  * that it does not have to be done: Surely endianess depends on hardware only
+  * (at least with all these platforms). Why is the operating compared against?
+  * It only necessitates another change for an additional platform and hence
+  * introduces another error source. If someone adds the platform Linux for
+  * HPPA, say, the following will result in the wrong endianess. As has in fact
+  * happened with Linux for PPC. (Dec 2001)
+  */
+#elif (defined(__SOPHOS_SPARC__)   || \
+       defined(__SOPHOS_HP_UX__)   || \
+       defined(__SOPHOS_POWERPC__) || \
+       defined(__SOPHOS_S390__)    || \
+       defined(__SOPHOS_68000__))
 #  define __SOPHOS_BIG_ENDIAN__
 #  undef  __SOPHOS_LITTLE_ENDIAN__
 # else
 #  undef  __SOPHOS_BIG_ENDIAN__
 #  define __SOPHOS_LITTLE_ENDIAN__
-# endif
 #endif
 
 /*
@@ -751,6 +891,7 @@
      defined(__SOPHOS_FREEBSD__)         || \
      defined(__SOPHOS_SCO_OPENSERVER__)  || \
      defined(__SOPHOS_SCO_UNIXWARE__)    || \
+     (defined(__SOPHOS_OSX__) && defined(__SOPHOS_API_OSX_UNIX__))     || \
      defined(__SOPHOS_HP_UX__))
 #  define __SOPHOS_UNIX__
 # endif

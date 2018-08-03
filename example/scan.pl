@@ -41,29 +41,19 @@ foreach (@ARGV) {
 sub set_options {
 
     my @options = qw(
-        FullSweep DynamicDecompression FullMacroSweep OLE2Handling
-        IgnoreTemplateBit VBA3Handling VBA5Handling OF95DecryptHandling
-        HelpHandling DecompressVBA5 Emulation PEHandling ExcelFormulaHandling
-        PowerPointMacroHandling PowerPointEmbeddedHandling ProjectHandling
-        ZipDecompression ArjDecompression RarDecompression UueDecompression
-        GZipDecompression TarDecompression CmzDecompression HqxDecompression
-        MbinDecompression !LoopBackEnabled
-        Lha SfxArchives MSCabinet TnefAttachmentHandling MSCompress
-        !DeleteAllMacros Vbe !ExecFileDisinfection VisioFileHandling
-        Mime ActiveMimeHandling !DelVBA5Project
-        ScrapObjectHandling SrpStreamHandling Office2001Handling
-        Upx Mac SafeMacDfHandling PalmPilotHandling HqxDecompression
-        Pdf Rtf Html Elf WordB OutlookExpress
+	GrpArchiveUnpack GrpSelfExtract GrpExecutable GrpInternet GrpMSOffice
+        GrpMisc !GrpDisinfect !GrpClean
+        EnableAutoStop FullSweep FullPdf Xml
       );
 
 
-    my $error = $savi->set('MaxRecursionDepth', 16, 1);
-    defined($error) and print "Error setting MaxRecursionDepth: $error\n";
+    my $error = $savi->set('MaxRecursionDepth', 32);
+    defined($error) and print "Error setting MaxRecursionDepth: " . $savi->error_string($error) . " ($error)\n";
 
     foreach (@options) {
         my $value = ($_ =~ s/^!//) ? 0 : 1;
 
         $error = $savi->set($_, $value);
-	defined($error) and print "Error setting $_: $error\n";
+	defined($error) and print "Error setting $_: " . $savi->error_string($error) . " ($error)\n";
     }
 }

@@ -1,9 +1,9 @@
 /*
- * SAVI-Perl version 0.15
+ * SAVI-Perl version 0.20
  *
  * Paul Henson <henson@acm.org>
  *
- * Copyright (c) 2002,2003 Paul Henson -- see COPYRIGHT file for details
+ * Copyright (c) 2002-2004 Paul Henson -- see COPYRIGHT file for details
  *
  */
 
@@ -15,13 +15,16 @@ extern "C" {
 #include "perl.h"
 #include "XSUB.h"
 
-#include "sav_if/csavi2c.h"
+#define INITGUID
+
+#include "sav_if/csavi3c.h"
 
 #ifdef __cplusplus
 }
 #endif
 
-typedef CISavi2 *SAVI;
+
+typedef CISavi3 *SAVI__handle;
 typedef CIEnumSweepResults *SAVI__results;
 
 typedef struct savi_version {
@@ -58,16 +61,16 @@ int arg;
   return 0;
 }
 
-MODULE = SAVI			PACKAGE = SAVI
+MODULE = SAVI			PACKAGE = SAVI::handle
 
 void
-DESTROY(savi)
-  SAVI savi
+DESTROY(savi_h)
+  SAVI::handle savi_h
   CODE:
   {
-    if (savi) {
-      savi->pVtbl->Terminate(savi);
-      savi->pVtbl->Release(savi);
+    if (savi_h) {
+      savi_h->pVtbl->Terminate(savi_h);
+      savi_h->pVtbl->Release(savi_h);
     }
   }
 
@@ -76,25 +79,26 @@ new(class)
   char *class
   PPCODE:
   {
-    SAVI savi;
+    SAVI__handle savi_h;
     CISweepClassFactory2 *factory;
     HRESULT status;
     SV *sv;
 
-    status = DllGetClassObject((REFIID)&SOPHOS_CLSID_SAVI2, (REFIID)&SOPHOS_IID_CLASSFACTORY2, (void **)&factory);
+    status = DllGetClassObject((REFIID)&SOPHOS_CLASSID_SAVI, (REFIID)&SOPHOS_IID_CLASSFACTORY2, (void **)&factory);
     
     if (SOPHOS_SUCCEEDED(status)) {
-      status = factory->pVtbl->CreateInstance(factory, NULL, &SOPHOS_IID_SAVI2, (void **)&savi);
+      status = factory->pVtbl->CreateInstance(factory, NULL, &SOPHOS_IID_SAVI3, (void **)&savi_h);
       
       if (SOPHOS_SUCCEEDED(status)) {
-	status = savi->pVtbl->InitialiseWithMoniker(savi, "SAVI-Perl");
+	status = savi_h->pVtbl->InitialiseWithMoniker(savi_h, SOPHOS_COMSTR("SAVI-Perl"));
 	
 	if (SOPHOS_SUCCEEDED(status)) {
-	  sv = sv_newmortal();
-	  sv_setref_pv(sv, "SAVI", savi);
+	    sv = sv_newmortal();
+	    sv_setref_pv(sv, "SAVI::handle", savi_h);
 	}
 	else
-	  savi->pVtbl->Release(savi);
+	  savi_h->pVtbl->Release(savi_h);
+
       }
       
       factory->pVtbl->Release(factory);
@@ -107,9 +111,122 @@ new(class)
     XPUSHs(sv);
   }
 
+
+int type_invalid(savi_h)
+  SAVI::handle savi_h
+  CODE:
+  {
+    RETVAL = SOPHOS_TYPE_INVALID;
+  }
+  OUTPUT:
+    RETVAL
+
+int type_u08(savi_h)
+  SAVI::handle savi_h
+  CODE:
+  {
+    RETVAL = SOPHOS_TYPE_U08;
+  }
+  OUTPUT:
+    RETVAL
+
+int type_u16(savi_h)
+  SAVI::handle savi_h
+  CODE:
+  {
+    RETVAL = SOPHOS_TYPE_U16;
+  }
+  OUTPUT:
+    RETVAL
+
+int type_u32(savi_h)
+  SAVI::handle savi_h
+  CODE:
+  {
+    RETVAL = SOPHOS_TYPE_U32;
+  }
+  OUTPUT:
+    RETVAL
+
+int type_s08(savi_h)
+  SAVI::handle savi_h
+  CODE:
+  {
+    RETVAL = SOPHOS_TYPE_S08;
+  }
+  OUTPUT:
+    RETVAL
+
+int type_s16(savi_h)
+  SAVI::handle savi_h
+  CODE:
+  {
+    RETVAL = SOPHOS_TYPE_S16;
+  }
+  OUTPUT:
+    RETVAL
+
+int type_s32(savi_h)
+  SAVI::handle savi_h
+  CODE:
+  {
+    RETVAL = SOPHOS_TYPE_S32;
+  }
+  OUTPUT:
+    RETVAL
+
+int type_boolean(savi_h)
+  SAVI::handle savi_h
+  CODE:
+  {
+    RETVAL = SOPHOS_TYPE_BOOLEAN;
+  }
+  OUTPUT:
+    RETVAL
+
+int type_bytestream(savi_h)
+  SAVI::handle savi_h
+  CODE:
+  {
+    RETVAL = SOPHOS_TYPE_BYTESTREAM;
+  }
+  OUTPUT:
+    RETVAL
+
+int type_option_group(savi_h)
+  SAVI::handle savi_h
+  CODE:
+  {
+    RETVAL = SOPHOS_TYPE_OPTION_GROUP;
+  }
+  OUTPUT:
+    RETVAL
+
+int type_string(savi_h)
+  SAVI::handle savi_h
+  CODE:
+  {
+    RETVAL = SOPHOS_TYPE_STRING;
+  }
+  OUTPUT:
+    RETVAL
+
 void
-version(savi)
-  SAVI savi
+load_data(savi_h)
+  SAVI::handle savi_h
+  PPCODE:
+  {
+    HRESULT status;
+
+    status = savi_h->pVtbl->LoadVirusData(savi_h);
+
+    if (SOPHOS_FAILED(status))
+      XPUSHs(sv_2mortal(newSViv(SOPHOS_CODE(status))));
+  }
+
+void
+version(savi_h)
+  SAVI::handle savi_h
   PPCODE:
   {
     SV *sv = &PL_sv_undef;
@@ -117,7 +234,7 @@ version(savi)
     HRESULT status;
     
     if (savi_version = (SAVI__version)malloc(sizeof(savi_version_obj))) {
-      status = savi->pVtbl->GetVirusEngineVersion(savi, &(savi_version->version), savi_version->string, 128,
+      status = savi_h->pVtbl->GetVirusEngineVersion(savi_h, &(savi_version->version), savi_version->string, 128,
 						  NULL, &(savi_version->count), NULL,
 						  (REFIID)&SOPHOS_IID_ENUM_IDEDETAILS,
 						  (void **)&(savi_version->ide_list));
@@ -133,8 +250,8 @@ version(savi)
   }
 
 void
-set(savi, param, value, type = 0)
-  SAVI savi
+set(savi_h, param, value, type)
+  SAVI::handle savi_h
   char *param
   char *value
   int type
@@ -142,15 +259,74 @@ set(savi, param, value, type = 0)
   {
     HRESULT status;
     
-    status = savi->pVtbl->SetConfigValue(savi, param, (type == 0 ? SOPHOS_TYPE_U32 : SOPHOS_TYPE_U16), value);
+    status = savi_h->pVtbl->SetConfigValue(savi_h, param, type, value);
 
     if (SOPHOS_FAILED(status))
       XPUSHs(sv_2mortal(newSViv(SOPHOS_CODE(status))));
+  
   }
 
 void
-scan(savi, path)
-  SAVI savi
+get(savi_h, param, type)
+  SAVI::handle savi_h
+  char *param
+  int type
+  PPCODE:
+  {
+    HRESULT status;
+    char value[1024];
+    
+    status = savi_h->pVtbl->GetConfigValue(savi_h, param, type, 1024, value, NULL);
+
+    if (SOPHOS_SUCCEEDED(status))
+      XPUSHs(sv_2mortal(newSVpv(value, strlen(value))));
+    else
+      XPUSHs(&PL_sv_undef);
+    
+      XPUSHs(sv_2mortal(newSViv(SOPHOS_CODE(status))));
+  
+  }
+
+void
+options(savi_h)
+  SAVI::handle savi_h
+  PPCODE:
+  {
+    CIEnumEngineConfig *options;
+    CIEngineConfig *option;
+    HRESULT status;
+    
+    status = savi_h->pVtbl->GetConfigEnumerator(savi_h, (REFIID)&SOPHOS_IID_ENUM_ENGINECONFIG, (void **)&options);
+
+    if (SOPHOS_SUCCEEDED(status)) {
+      status = options->pVtbl->Reset(options);
+
+      if (SOPHOS_SUCCEEDED(status)) {
+	while (options->pVtbl->Next(options, 1, (void **)&option, NULL) == SOPHOS_S_OK) {
+	  char name[1024];
+	  status = option->pVtbl->GetName(option, 1024, name, NULL);
+
+	  if (SOPHOS_SUCCEEDED(status)) {
+	    U32 type;
+	    status = option->pVtbl->GetType(option, &type);
+
+	    if (SOPHOS_SUCCEEDED(status)) {
+	      XPUSHs(sv_2mortal(newSVpv(name, strlen(name))));
+	      XPUSHs(sv_2mortal(newSViv(type)));
+	    }
+	  }
+
+	  option->pVtbl->Release(option);
+	}
+      }
+
+      options->pVtbl->Release(options);
+    }
+  }
+
+void
+scan(savi_h, path)
+  SAVI::handle savi_h
   char *path
   PPCODE:
   {
@@ -158,14 +334,41 @@ scan(savi, path)
     HRESULT status;
     SV *sv;
     
-    status = savi->pVtbl->SweepFile(savi, path, (REFIID)&SOPHOS_IID_ENUM_SWEEPRESULTS, (void **)&results);
+    status = savi_h->pVtbl->SweepFile(savi_h, path, (REFIID)&SOPHOS_IID_ENUM_SWEEPRESULTS, (void **)&results);
 
     if (status == SOPHOS_S_OK) {
       results->pVtbl->Release(results);
       sv = sv_newmortal();
       sv_setref_iv(sv, "SAVI::results", 0);
     }
-    else if (status == SOPHOS_SAVI2_ERROR_VIRUSPRESENT) {
+    else if (status == SOPHOS_SAVI_ERROR_VIRUSPRESENT) {
+      sv = sv_newmortal();
+      sv_setref_pv(sv, "SAVI::results", results);
+    }
+    else
+      sv = sv_2mortal(newSViv(SOPHOS_CODE(status)));
+      
+    XPUSHs(sv);
+  }
+
+void
+scan_fh(savi_h, fh)
+  SAVI::handle savi_h
+  FILE *fh
+  PPCODE:
+  {
+    SAVI__results results;
+    HRESULT status;
+    SV *sv;
+    
+    status = savi_h->pVtbl->SweepHandle(savi_h, "handle", fileno(fh), (REFIID)&SOPHOS_IID_ENUM_SWEEPRESULTS, (void **)&results);
+
+    if (status == SOPHOS_S_OK) {
+      results->pVtbl->Release(results);
+      sv = sv_newmortal();
+      sv_setref_iv(sv, "SAVI::results", 0);
+    }
+    else if (status == SOPHOS_SAVI_ERROR_VIRUSPRESENT) {
       sv = sv_newmortal();
       sv_setref_pv(sv, "SAVI::results", results);
     }
