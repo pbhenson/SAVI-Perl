@@ -1,0 +1,51 @@
+Introduction
+------------
+
+SAVI-Perl is a Perl module interface to the Sophos Anti-Virus engine. It
+allows you to scan files for viruses directly from Perl.
+
+
+Installation
+------------
+
+In order to successfully compile and use SAVI-Perl, you must have already
+acquired and installed the Sophos Anti-Virus software and API. Information
+about these products can be found at
+
+     http://www.sophos.com/products/software/
+
+
+If the Sophos library is not in the default search path, edit Makefile.PL
+and update the -L and -R options appropriately.
+
+After meeting the prerequisites, run the following commands to
+compile/install:
+
+     perl Makefile.PL
+     make
+     make install
+
+
+The file scan.pl in the example directory demonstrates how to use the
+module to initialize the engine, determine version information, set
+options, and scan files for viruses. The module also contains some
+documentation, accessible via either 'man SAVI' or 'perldoc SAVI' after
+installation.
+
+
+Changes
+-------
+
+0.05 - First publicly released version.
+
+
+Feedback/Availability
+---------------------
+
+Please report any bugs or feature requests to <henson@acm.org>.
+
+
+The latest version of SAVI-Perl is available on CPAN, or via the URL:
+
+	http://www.csupomona.edu/~henson/www/projects/SAVI-Perl/
+
