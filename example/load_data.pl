@@ -7,9 +7,6 @@ my $savi = new SAVI();
 
 ref $savi or print "Error initializing savi: " . SAVI->error_string($savi) . " ($savi)\n" and die;
 
-my $mtime = (stat($ENV{SAV_IDE}))[9];
-my $new_mtime;
-
 while (1) {
 
     my $status;
@@ -26,10 +23,9 @@ while (1) {
 	printf("\tIDE %s released %s\n", $_->name, $_->date);
     }
 
-    print "\n\nWaiting for update ($mtime)...\n\n";
+    print "\n\nWaiting for update...\n\n";
 
-    while (($new_mtime = (stat($ENV{SAV_IDE}))[9]) == $mtime) {
-	sleep(600);
+    while (! $savi->stale()) {
+	sleep(30);
     }
-    $mtime = $new_mtime;
 }

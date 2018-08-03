@@ -36,6 +36,10 @@ installation.
 Changes
 -------
 
+0.30 - Added new method $savi->stale() to check whether
+       virus data needs to be reloaded.
+
+
 0.25 - Added support for Sun C compiler to s_comput.h in
        Sophos include files.
 

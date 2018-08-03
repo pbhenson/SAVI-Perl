@@ -1,5 +1,5 @@
 #
-# SAVI-Perl version 0.25
+# SAVI-Perl version 0.30
 #
 # Paul Henson <henson@acm.org>
 #
@@ -20,7 +20,7 @@ require AutoLoader;
 
 @EXPORT = qw();
 
-$VERSION = '0.25';
+$VERSION = '0.30';
 
 bootstrap SAVI $VERSION;
 
@@ -101,16 +101,35 @@ sub SAVI::options {
 sub SAVI::load_data {
     my ($self, $vdl_dir, $ide_dir) = @_;
 
+    my $error;
+
     if ($vdl_dir) {
-	my $error;
 
 	$error = $self->set("VirusDataDir", $vdl_dir) and return $error;
 	$error = $self->set("IdeDir", $ide_dir || $vdl_dir) and return $error;
-    }
 	
+	$self->{ide_dir} = $ide_dir || $vdl_dir;
+    }
+    elsif (! defined($self->{ide_dir})) {
+
+	($self->{ide_dir}, $error) = $self->get("IdeDir");
+
+	return $error if $error;
+    }
+
+    $self->{mtime} = (stat($self->{ide_dir}))[9];
 
     return $self->{savi_h}->load_data();
 }
+
+sub SAVI::stale {
+    my ($self) = @_;
+
+    my $new_mtime = (stat($self->{ide_dir}))[9];
+
+    return ($new_mtime > $self->{mtime}) ? 1 : 0;
+}
+
 
 sub SAVI::version {
     my ($self) = @_;
@@ -199,6 +218,18 @@ numeric error code on failure.
 Returns a reference to an object of type SAVI::version on success,
 a numeric error code in the case of failure of the underlying API call,
 or undef upon failure to allocate memory.
+
+=back
+
+=over 4
+
+=item $savi->stale();
+
+Returns true if the virus data in use is stale and should be reloaded.
+This is implemented by saving the mtime of the IDE directory when
+the virus data is loaded and comparing the current mtime of that
+directory to the saved value. If the current mtime is greater than
+the saved value, the virus data is assumed to be stale.
 
 =back
 
