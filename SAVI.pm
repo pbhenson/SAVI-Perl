@@ -1,5 +1,5 @@
 #
-# SAVI-Perl version 0.20
+# SAVI-Perl version 0.25
 #
 # Paul Henson <henson@acm.org>
 #
@@ -20,7 +20,7 @@ require AutoLoader;
 
 @EXPORT = qw();
 
-$VERSION = '0.20';
+$VERSION = '0.25';
 
 bootstrap SAVI $VERSION;
 

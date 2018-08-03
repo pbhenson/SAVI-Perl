@@ -24,6 +24,7 @@
  *   __SOPHOS_DECC__           Digital C/C++
  *   __SOPHOS_MWERKS__         Metrowerks Codewarrior C/C++ compiler
  *   __SOPHOS_IBMC__           IBM
+ *   __SOPHOS_SUNC__           Sun
  *
  * Hardware platform:
  *   __SOPHOS_I86__            Intel 8086+
@@ -165,6 +166,7 @@
 #undef __SOPHOS_DECC__
 #undef __SOPHOS_MWERKS__
 #undef __SOPHOS_IBMC__
+#undef __SOPHOS_SUNC__
 #undef __SOPHOS_YIELD__
 #undef __SOPHOS_BIG_ENDIAN__
 #undef __SOPHOS_LITTLE_ENDIAN__
@@ -825,6 +827,64 @@
 #  define __SOPHOS_POWERPC__
 # else                                                              /* Unsupported hardware platform */
 #  error Unsupported IBM C/C++ target hardware platform
+# endif
+
+
+/* ----- */
+
+#elif defined(__SUNPRO_C)
+
+# define __SOPHOS_SUNC__
+
+/*
+ * Export keywords - SUNC
+ */
+
+#define SOPHOS_PUBLIC
+#define SOPHOS_PUBLIC_PTR *
+#define SOPHOS_EXPORT
+#define SOPHOS_EXPORTC
+#define SOPHOS_IMPORT 
+#define SOPHOS_STDCALL
+
+/*
+ * Far keyword.
+ */
+
+#define SOPHOS_FAR
+
+/*
+ * Inline keyword.
+ */
+# define SOPHOS_INL_KW  __inline__
+# if defined(__SOPHOS_INLINE__)
+#  define SOPHOS_INLINEC  SOPHOS_INL_KW
+# else
+#  define SOPHOS_INLINEC
+# endif
+
+
+/*
+ * Operating system for SUNC
+ */
+
+# if defined(__sun)
+#  define __SOPHOS_SOL2__
+# else
+#  error Unsupported SUN C target operating system
+# endif
+
+
+/*
+ * Hardware platform.
+ */
+
+# if defined(__i386)
+#  define __SOPHOS_I386__
+# elif defined(__sparc)
+#  define __SOPHOS_SPARC__
+# else
+#  error Unsupported SUN C target hardware platform
 # endif
 
 

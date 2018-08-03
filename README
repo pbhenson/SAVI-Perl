@@ -36,6 +36,10 @@ installation.
 Changes
 -------
 
+0.25 - Added support for Sun C compiler to s_comput.h in
+       Sophos include files.
+
+
 0.20 - Updated to version 4 of the SAVI API.
 
      - Added new method $savi->load_data() to load virus data.
