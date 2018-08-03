@@ -1,5 +1,5 @@
 #
-# SAVI-Perl version 0.05
+# SAVI-Perl version 0.10
 #
 # Paul Henson <henson@acm.org>
 #
@@ -20,7 +20,7 @@ require AutoLoader;
 
 @EXPORT = qw();
 
-$VERSION = '0.05';
+$VERSION = '0.10';
 
 sub AUTOLOAD {
     my $constname;
@@ -40,6 +40,55 @@ sub AUTOLOAD {
 }
 
 bootstrap SAVI $VERSION;
+
+my %error_strings = (
+    0x200 => "DLL failed to initialize",
+    0x201 => "Error while unloading",
+    0x202 => "Virus scan failed",
+    0x203 => "A virus was detected",
+    0x204 => "Attempt to use virus engine without initializing it",
+    0x205 => "The installed version of SAVI is running an incompatible version of the InterCheck client",
+    0x206 => "The process does not have sufficient rights to disable the InterCheck client",
+    0x207 => "The InterCheck client could not be disabled - the request to scan the file has been denied",
+    0x208 => "The disinfection failed",
+    0x209 => "Disinfection was attempted on an uninfected file",
+    0x20A => "An attempted upgrade to the virus engine failed",
+    0x20B => "Sophos Anti Virus has been removed from this machine",
+    0x20C => "Attempt to get/set SAVI configuration with incorrect name",
+    0x20D => "Attempt to get/set SAVI configuration with incorrect type",
+    0x20E => "Could not configure SAVI",
+    0x20F => "Not supported in this SAVI implementation",
+    0x210 => "File couldn't be accessed",
+    0x211 => "File was compressed, but no virus was found on the outer level",
+    0x212 => "File was encrypted",
+    0x213 => "Additional virus location is unavailable",
+    0x214 => "Attempt to initialize when already initialized",
+    0x215 => "Attempt to use a stub library",
+    0x216 => "Buffer supplied was too small",
+    0x217 => "Returned from a callback function to continue with the current file",
+    0x218 => "Returned from a callback function to skip to the next file",
+    0x219 => "Returned from a callback function to stop the current operation",
+    0x21A => "Sweep could not proceed, the file was corrupted",
+    0x21B => "An attempt to re-enter SAVI from a callback notification was detected",
+    0x21C => "An error was encountered in the SAVI client's callback function",
+    0x21D => "A call requesting several pieces of information did not return them all",
+    0x21E => "The main body of virus data is out of date",
+    0x21F => "No valid temporary directory found",
+    0x220 => "The main body of virus data is missing",
+    0x221 => "The InterCheck client is active, and could not be disabled",
+    0x222 => "The virus data main body has an invalid version",
+    0x223 => "SAVI must be reinitialised - the virus engine has a version higher than the running version of SAVI supports",
+    0x224 => "Cannot set option value - the virus engine will not permit its value to be changed, as this option is immutable",
+    0x225 => "The file passed for scanning represented part of a multi volume archive - the file cannot be scanned",
+);
+
+sub SAVI::error_string {
+    my ($class, $code) = @_;
+
+    defined ($error_strings{$code}) and return $error_strings{$code};
+
+    return "Unknown error";
+}
 
 1;
 __END__
@@ -90,6 +139,16 @@ undef on success and a numeric error code on failure.
 
 Initiates a scan on the given file. Returns a reference to an object of type
 SAVI::results on success, or a numeric error code on failure.
+
+=back
+
+=over 4
+
+=item $savi->error_string(code);
+
+Returns an error message corresponding to the given code. Can also
+be called as SAVI->error_string(code) if the failure resulted from
+initializing the $savi object itself.
 
 =back
 

@@ -1,5 +1,5 @@
 /*
- * SAVI-Perl version 0.05
+ * SAVI-Perl version 0.10
  *
  * Paul Henson <henson@acm.org>
  *
@@ -309,16 +309,18 @@ viruses(results)
   PPCODE:
   {
     CISweepResults *virus_info;
+
+    if (results) {
+      results->pVtbl->Reset(results);
     
-    results->pVtbl->Reset(results);
-    
-    while (results->pVtbl->Next(results, 1, (void **)&virus_info, NULL) == SOPHOS_S_OK) {
-      char virus_name[128];
-      
-      if (virus_info->pVtbl->GetVirusName(virus_info, 128, virus_name, NULL) == SOPHOS_S_OK) {
-	XPUSHs(sv_2mortal(newSVpv(virus_name, strlen(virus_name))));
+      while (results->pVtbl->Next(results, 1, (void **)&virus_info, NULL) == SOPHOS_S_OK) {
+	char virus_name[128];
+	
+	if (virus_info->pVtbl->GetVirusName(virus_info, 128, virus_name, NULL) == SOPHOS_S_OK) {
+	  XPUSHs(sv_2mortal(newSVpv(virus_name, strlen(virus_name))));
+	}
+	
+	virus_info->pVtbl->Release(virus_info);
       }
-      
-      virus_info->pVtbl->Release(virus_info);
     }
   }

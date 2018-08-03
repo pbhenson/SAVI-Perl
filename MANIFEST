@@ -21,5 +21,6 @@ sav_if/swerror2.h
 sav_if/swiid.h
 sav_if/s_comput.h
 sav_if/s_types.h
+t/use.t
 SAVI.pm
 typemap

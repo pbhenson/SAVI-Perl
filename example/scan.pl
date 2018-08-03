@@ -1,14 +1,15 @@
-#!/usr/local/bin/perl
+#!/usr/local/bin/perl -w
 
 use SAVI;
+use strict;
 
 my $savi = new SAVI();
 
-ref $savi or print "Error initializing savi: $savi\n" and die;
+ref $savi or print "Error initializing savi: " . SAVI->error_string($savi) . " ($savi)\n" and die;
 
 my $version = $savi->version();
 
-ref $version or print "Error getting version: $version\n" and die;
+ref $version or print "Error getting version: " . $savi->error_string($version) . " ($version)\n" and die;
 
 printf("Version %s (engine %d.%d) recognizing %d viruses\n", $version->string, $version->major,
        $version->minor, $version->count);
@@ -25,7 +26,7 @@ foreach (@ARGV) {
     print "Scanning $_ - ";
     
     my $results = $savi->scan($_);
-    ref $results or print "error: $results\n" and next;
+    ref $results or print "error: " . $savi->error_string($results) . " ($results)\n" and next;
     
     print "clean\n" and next if ! $results->infected;
 

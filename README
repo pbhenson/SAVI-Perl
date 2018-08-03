@@ -36,6 +36,19 @@ installation.
 Changes
 -------
 
+0.10 - Calling $results->viruses() if the scanned file was not infected
+       would result in a segmentation violation. While from a pedantic
+       point of view you just really shouldn't do that ;), an empty
+       list will now be returned in this case.
+
+     - Added new method $savi->error_string(code) to return a message
+       corresponding to the given error code. Updated sample script to
+       demonstrate use.
+
+     - Add simple test script to prevent complaints from
+       cpan-testers@perl.org :). 
+
+
 0.05 - First publicly released version.
 
 
